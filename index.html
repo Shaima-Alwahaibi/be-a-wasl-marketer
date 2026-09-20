@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#12263A" />
+    <title>كن مسوّق وصل | WASL</title>
+    <meta
+      name="description"
+      content="Join the WASL marketing team. Apply in Arabic or English. Commission-based. انضم إلى فريق تسويق وصل."
+    />
+    <link rel="icon" href="assets/wasl-logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg"></div>
+    <main class="wrap">
+      <header class="topbar">
+        <a class="brand" href="#">
+          <img src="assets/wasl-logo.png" alt="WASL" />
+          <span class="brand-name" dir="ltr">
+            <strong>WASL</strong>
+            <span>وصل</span>
+          </span>
+        </a>
+        <div class="lang" dir="ltr" role="group" aria-label="Language">
+          <button type="button" data-lang="ar">العربية</button>
+          <button type="button" data-lang="en">English</button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <img class="hero-logo" src="assets/wasl-logo.png" alt="WASL logo" />
+        <div class="kicker" data-i18n="kicker">انضم إلى الفريق</div>
+        <h1 data-i18n="title">كن مسوّق وصل</h1>
+        <p data-i18n="intro">
+          وصل نظام بسيط للشركات. نبحث عن مسوقين للانضمام إلى فريقنا. ستحصل على عمولة.
+        </p>
+        <div class="pills">
+          <span class="pill" data-i18n="pill1">عمولة</span>
+          <span class="pill" data-i18n="pill2">انضم لفريق السوق</span>
+          <span class="pill" data-i18n="pill3">طلب في صفحة واحدة</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <div id="success" class="success" hidden>
+          <img src="assets/wasl-logo.png" alt="" width="72" height="72" style="border-radius: 20px; background: #000" />
+          <h2 data-i18n="successTitle">تم إرسال الطلب</h2>
+          <p class="lead" data-i18n="successText">استلمنا النموذج والسيرة الذاتية. سيراجعه فريق وصل.</p>
+        </div>
+
+        <form id="join-form" method="POST" enctype="multipart/form-data">
+          <h2 data-i18n="formTitle">قدّم للانضمام</h2>
+          <p class="lead" data-i18n="formLead">أخبرنا عنك باختصار. بدون تفاصيل طويلة.</p>
+
+          <input class="honey" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <input type="hidden" name="_captcha" value="false" />
+          <input type="hidden" name="_template" value="table" />
+          <input type="hidden" name="_subject" value="WASL marketer application" />
+          <input type="hidden" name="_next" value="" />
+          <input type="hidden" name="formLanguage" value="Arabic" />
+
+          <div class="grid">
+            <div>
+              <label for="fullName"><span data-i18n="name">الاسم الكامل</span> <span class="req">*</span></label>
+              <input id="fullName" name="fullName" type="text" required autocomplete="name" />
+            </div>
+
+            <div class="grid two">
+              <div>
+                <label for="age"><span data-i18n="age">العمر</span> <span class="req">*</span></label>
+                <input id="age" name="age" type="number" min="16" max="80" required />
+              </div>
+              <div>
+                <span class="legend"><span data-i18n="gender">الجنس</span> <span class="req">*</span></span>
+                <div class="choices">
+                  <label class="choice">
+                    <input type="radio" name="gender" value="Male" required />
+                    <span data-i18n="male">ذكر</span>
+                  </label>
+                  <label class="choice">
+                    <input type="radio" name="gender" value="Female" />
+                    <span data-i18n="female">أنثى</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid two">
+              <div>
+                <label for="phone"><span data-i18n="phone">رقم الهاتف</span> <span class="req">*</span></label>
+                <input id="phone" name="phone" type="tel" required autocomplete="tel" />
+              </div>
+              <div>
+                <label for="email"><span data-i18n="email">البريد الإلكتروني</span> <span class="req">*</span></label>
+                <input id="email" name="email" type="email" required autocomplete="email" />
+              </div>
+            </div>
+
+            <div>
+              <label for="expectations"><span data-i18n="expect">ماذا تتوقع منا؟</span> <span class="req">*</span></label>
+              <textarea id="expectations" name="expectations" required data-i18n-placeholder="expectPh"></textarea>
+            </div>
+
+            <div>
+              <span class="legend"><span data-i18n="before">هل سبق أن عملت في التسويق؟</span> <span class="req">*</span></span>
+              <div class="choices">
+                <label class="choice">
+                  <input type="radio" name="marketedBefore" value="Yes" required />
+                  <span data-i18n="yes">نعم</span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="marketedBefore" value="No" />
+                  <span data-i18n="no">لا</span>
+                </label>
+              </div>
+            </div>
+
+            <div id="experience-extra" class="extra">
+              <div>
+                <label for="marketedFor"><span data-i18n="forWhat">سوّقت لأي شيء؟</span> <span class="req">*</span></label>
+                <input id="marketedFor" name="marketedFor" type="text" data-i18n-placeholder="forWhatPh" />
+              </div>
+              <div>
+                <label for="marketingResult"><span data-i18n="result">كيف كانت النتيجة؟</span> <span class="req">*</span></label>
+                <textarea id="marketingResult" name="marketingResult" data-i18n-placeholder="resultPh"></textarea>
+              </div>
+            </div>
+
+            <div>
+              <span class="legend"><span data-i18n="cv">السيرة الذاتية</span> <span class="req">*</span></span>
+              <div class="file" id="file-box">
+                <input id="attachment" name="attachment" type="file" required accept=".pdf,.doc,.docx,application/pdf" />
+                <strong id="file-name" data-i18n="cvPick">اضغط لإرفاق السيرة الذاتية</strong>
+                <span data-i18n="cvHint">PDF أو Word. الحجم الأقصى 8 ميجا.</span>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="submit" id="submit-btn" type="submit" data-i18n="submit">إرسال الطلب</button>
+              <div id="status" class="status" role="status"></div>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <p class="foot" data-i18n="footer">وصل — انضم إلى فريق التسويق</p>
+    </main>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
