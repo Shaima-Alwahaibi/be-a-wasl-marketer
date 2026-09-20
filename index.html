@@ -7,7 +7,7 @@
     <title>كن مسوّق وصل | WASL</title>
     <meta
       name="description"
-      content="Join the WASL marketing team. Apply in Arabic or English. Commission-based. انضم إلى فريق تسويق وصل."
+      content="Join the WASL marketing team. Earn commission for every company that joins WASL through you. انضم إلى فريق تسويق وصل."
     />
     <link rel="icon" href="assets/wasl-logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -40,10 +40,10 @@
         <div class="kicker" data-i18n="kicker">انضم إلى الفريق</div>
         <h1 data-i18n="title">كن مسوّق وصل</h1>
         <p data-i18n="intro">
-          وصل نظام بسيط للشركات. نبحث عن مسوقين للانضمام إلى فريقنا. ستحصل على عمولة.
+          وصل نظام بسيط للشركات. يمكنك المساعدة في تعريف الشركات بمنصتنا، وإذا انضمت شركة عن طريقك، تحصل على عمولة.
         </p>
         <div class="pills">
-          <span class="pill" data-i18n="pill1">عمولة</span>
+          <span class="pill" data-i18n="pill1">عمولة عن كل شركة</span>
           <span class="pill" data-i18n="pill2">انضم لفريق السوق</span>
           <span class="pill" data-i18n="pill3">طلب في صفحة واحدة</span>
         </div>
@@ -58,7 +58,7 @@
 
         <form id="join-form" method="POST" enctype="multipart/form-data">
           <h2 data-i18n="formTitle">قدّم للانضمام</h2>
-          <p class="lead" data-i18n="formLead">أخبرنا عنك باختصار. بدون تفاصيل طويلة.</p>
+          <p class="lead" data-i18n="formLead">أخبرنا عنك باختصار. ستحصل على عمولة عن كل شركة تنضم إلى وصل عن طريقك.</p>
 
           <input class="honey" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
           <input type="hidden" name="_captcha" value="false" />
@@ -102,6 +102,30 @@
                 <label for="email"><span data-i18n="email">البريد الإلكتروني</span> <span class="req">*</span></label>
                 <input id="email" name="email" type="email" required autocomplete="email" />
               </div>
+            </div>
+
+            <div>
+              <span class="legend"><span data-i18n="likesPeople">هل تحب التواصل مع الناس والتعرف على شركات جديدة؟</span> <span class="req">*</span></span>
+              <div class="choices">
+                <label class="choice">
+                  <input type="radio" name="likesPeople" value="Yes" required />
+                  <span data-i18n="yes">نعم</span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="likesPeople" value="No" />
+                  <span data-i18n="no">لا</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label for="whySuitable"><span data-i18n="whySuitable">لماذا تعتقد أنك مناسب لهذه الفرصة؟</span> <span class="req">*</span></label>
+              <textarea id="whySuitable" name="whySuitable" required data-i18n-placeholder="whySuitablePh"></textarea>
+            </div>
+
+            <div>
+              <label for="helpReach"><span data-i18n="helpReach">كيف يمكنك مساعدة وصل في الوصول إلى شركات جديدة؟</span> <span class="req">*</span></label>
+              <textarea id="helpReach" name="helpReach" required data-i18n-placeholder="helpReachPh"></textarea>
             </div>
 
             <div>
