@@ -32,7 +32,7 @@ const I18N = {
     result: "How was the result?",
     resultPh: "What happened, and what did you achieve?",
     cv: "CV",
-    cvHint: "PDF, Word, or image. Max 8 MB.",
+    cvHint: "PDF or Word only. 20 KB to 2 MB.",
     cvPick: "Click to attach your CV",
     cvPicked: "Selected",
     submit: "Send application",
@@ -41,7 +41,9 @@ const I18N = {
     err: "Could not send. Please try again.",
     needEmail: "Put your email in config.js first (inbox), then try again.",
     required: "Please fill the required fields.",
-    fileBig: "The CV must be 8 MB or smaller.",
+    fileBig: "The CV must be 2 MB or smaller.",
+    fileSmall: "The CV file is too small.",
+    fileType: "Use a PDF or Word file only.",
     successTitle: "Thank you",
     successText: "The WASL team will contact you within 2 weeks.",
     footer: "WASL — Join the marketing team",
@@ -79,7 +81,7 @@ const I18N = {
     result: "كيف كانت النتيجة؟",
     resultPh: "ماذا حصل، وما الذي حققته؟",
     cv: "السيرة الذاتية",
-    cvHint: "PDF أو Word أو صورة. الحجم الأقصى 8 ميجا.",
+    cvHint: "PDF أو Word فقط. من 20 كيلو إلى 2 ميجا.",
     cvPick: "اضغط لإرفاق السيرة الذاتية",
     cvPicked: "تم اختيار",
     submit: "إرسال الطلب",
@@ -88,14 +90,23 @@ const I18N = {
     err: "تعذر الإرسال. حاول مرة أخرى.",
     needEmail: "ضع بريدك في ملف config.js أولاً ثم أعد المحاولة.",
     required: "أكمل الحقول المطلوبة.",
-    fileBig: "يجب ألا يتجاوز ملف السيرة 8 ميجا.",
+    fileBig: "يجب ألا يتجاوز ملف السيرة 2 ميجا.",
+    fileSmall: "ملف السيرة صغير جداً.",
+    fileType: "استخدم ملف PDF أو Word فقط.",
     successTitle: "شكراً لك",
     successText: "سيتواصل معك فريق وصل خلال أسبوعين.",
     footer: "وصل — انضم إلى فريق التسويق",
   },
 };
 
-const MAX_FILE = 8 * 1024 * 1024;
+const MIN_FILE = 20 * 1024;
+const MAX_FILE = 2 * 1024 * 1024;
+const ALLOWED_EXT = ["pdf", "doc", "docx"];
+const ALLOWED_TYPES = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
 const form = document.getElementById("join-form");
 const extra = document.getElementById("experience-extra");
 const fileBox = document.getElementById("file-box");
@@ -158,11 +169,56 @@ form.querySelectorAll('input[name="marketedBefore"]').forEach((el) => {
   el.addEventListener("change", toggleExperience);
 });
 
-form.attachment.addEventListener("change", () => {
+function fileExtension(name) {
+  const lower = String(name || "").toLowerCase();
+  const parts = lower.split(".").filter(Boolean);
+  if (parts.length < 2) return "";
+  const dangerous = ["exe", "js", "html", "htm", "svg", "bat", "cmd", "scr", "com", "jar", "php", "pif", "msi", "dll"];
+  if (parts.slice(0, -1).some((part) => dangerous.includes(part))) return "";
+  return parts[parts.length - 1];
+}
+
+async function looksLikeSafeCv(file) {
+  const header = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+  const pdf = header[0] === 0x25 && header[1] === 0x50 && header[2] === 0x44 && header[3] === 0x46;
+  const doc = header[0] === 0xd0 && header[1] === 0xcf && header[2] === 0x11 && header[3] === 0xe0;
+  const docx = header[0] === 0x50 && header[1] === 0x4b;
+  return pdf || doc || docx;
+}
+
+async function cvError(file) {
+  if (!file) return "required";
+  if (file.size < MIN_FILE) return "fileSmall";
+  if (file.size > MAX_FILE) return "fileBig";
+  const ext = fileExtension(file.name);
+  if (!ALLOWED_EXT.includes(ext)) return "fileType";
+  if (file.type && !ALLOWED_TYPES.includes(file.type)) return "fileType";
+  if (!(await looksLikeSafeCv(file))) return "fileType";
+  return "";
+}
+
+function clearCv() {
+  form.attachment.value = "";
+  fileBox.classList.remove("ready");
+  fileName.textContent = I18N[currentLang()].cvPick;
+}
+
+form.attachment.addEventListener("change", async () => {
   const t = I18N[currentLang()];
   const file = form.attachment.files[0];
-  fileBox.classList.toggle("ready", Boolean(file));
-  fileName.textContent = file ? `${t.cvPicked}: ${file.name}` : t.cvPick;
+  if (!file) {
+    clearCv();
+    return;
+  }
+  const error = await cvError(file);
+  if (error) {
+    clearCv();
+    showStatus("err", t[error]);
+    return;
+  }
+  statusEl.className = "status";
+  fileBox.classList.add("ready");
+  fileName.textContent = `${t.cvPicked}: ${file.name}`;
 });
 
 if (new URLSearchParams(location.search).get("sent") === "1") {
@@ -220,12 +276,9 @@ form.addEventListener("submit", async (event) => {
   }
 
   const file = form.attachment.files[0];
-  if (!file) {
-    showStatus("err", t.required);
-    return;
-  }
-  if (file.size > MAX_FILE) {
-    showStatus("err", t.fileBig);
+  const fileProblem = await cvError(file);
+  if (fileProblem) {
+    showStatus("err", t[fileProblem]);
     return;
   }
 
