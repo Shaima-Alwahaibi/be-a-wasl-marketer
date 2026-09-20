@@ -32,7 +32,7 @@ const I18N = {
     result: "How was the result?",
     resultPh: "What happened, and what did you achieve?",
     cv: "CV",
-    cvHint: "PDF, Word. Max 8 MB.",
+    cvHint: "PDF, Word, or image. Max 8 MB.",
     cvPick: "Click to attach your CV",
     cvPicked: "Selected",
     submit: "Send application",
@@ -42,8 +42,8 @@ const I18N = {
     needEmail: "Put your email in config.js first (inbox), then try again.",
     required: "Please fill the required fields.",
     fileBig: "The CV must be 8 MB or smaller.",
-    successTitle: "Application sent",
-    successText: "We received your form and CV. WASL will review it.",
+    successTitle: "Thank you",
+    successText: "The WASL team will contact you within 2 weeks.",
     footer: "WASL — Join the marketing team",
   },
   ar: {
@@ -79,7 +79,7 @@ const I18N = {
     result: "كيف كانت النتيجة؟",
     resultPh: "ماذا حصل، وما الذي حققته؟",
     cv: "السيرة الذاتية",
-    cvHint: "PDF أو Word. الحجم الأقصى 8 ميجا.",
+    cvHint: "PDF أو Word أو صورة. الحجم الأقصى 8 ميجا.",
     cvPick: "اضغط لإرفاق السيرة الذاتية",
     cvPicked: "تم اختيار",
     submit: "إرسال الطلب",
@@ -89,8 +89,8 @@ const I18N = {
     needEmail: "ضع بريدك في ملف config.js أولاً ثم أعد المحاولة.",
     required: "أكمل الحقول المطلوبة.",
     fileBig: "يجب ألا يتجاوز ملف السيرة 8 ميجا.",
-    successTitle: "تم إرسال الطلب",
-    successText: "استلمنا النموذج والسيرة الذاتية. سيراجعه فريق وصل.",
+    successTitle: "شكراً لك",
+    successText: "سيتواصل معك فريق وصل خلال أسبوعين.",
     footer: "وصل — انضم إلى فريق التسويق",
   },
 };
@@ -166,15 +166,46 @@ form.attachment.addEventListener("change", () => {
 });
 
 if (new URLSearchParams(location.search).get("sent") === "1") {
-  form.hidden = true;
-  successEl.hidden = false;
-  successEl.classList.add("show");
+  showSuccess();
 }
 
 applyLang(currentLang());
 toggleExperience();
 
-form.addEventListener("submit", (event) => {
+function showSuccess() {
+  form.hidden = true;
+  successEl.hidden = false;
+  successEl.classList.add("show");
+  successEl.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+async function uploadCv(file) {
+  try {
+    const body = new FormData();
+    body.append("file", file, file.name);
+    body.append("expire", "172800");
+    const res = await fetch("https://tmpfiles.org/api/v1/upload", { method: "POST", body });
+    const json = await res.json();
+    const url = json?.data?.url;
+    if (url) return url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+  } catch (_) {
+    /* try next host */
+  }
+  try {
+    const body = new FormData();
+    body.append("reqtype", "fileupload");
+    body.append("time", "72h");
+    body.append("fileToUpload", file, file.name);
+    const res = await fetch("https://litterbox.catbox.moe/resources/tools/api.php", { method: "POST", body });
+    const text = (await res.text()).trim();
+    if (/^https?:\/\//i.test(text)) return text;
+  } catch (_) {
+    /* native attachment remains */
+  }
+  return "";
+}
+
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const t = I18N[currentLang()];
 
@@ -189,19 +220,49 @@ form.addEventListener("submit", (event) => {
   }
 
   const file = form.attachment.files[0];
-  if (file && file.size > MAX_FILE) {
+  if (!file) {
+    showStatus("err", t.required);
+    return;
+  }
+  if (file.size > MAX_FILE) {
     showStatus("err", t.fileBig);
     return;
   }
 
-  form.querySelector('[name="_subject"]').value = `WASL marketer application — ${form.fullName.value}`;
-  form.querySelector('[name="formLanguage"]').value = currentLang() === "ar" ? "Arabic" : "English";
-  if (location.protocol.startsWith("http")) {
-    form.querySelector('[name="_next"]').value = `${location.origin}${location.pathname}?sent=1`;
-  }
-
   submitBtn.disabled = true;
   submitBtn.textContent = t.sending;
+
+  const cvLink = await uploadCv(file);
+  form.querySelector('[name="CV_File_Name"]').value = file.name;
+  form.querySelector('[name="CV_Download_Link"]').value = cvLink || "";
+  form.querySelector('[name="_subject"]').value = `WASL marketer application — ${form.fullName.value}`;
+  form.querySelector('[name="formLanguage"]').value = currentLang() === "ar" ? "Arabic" : "English";
+  form.querySelector('[name="_next"]').value = `${location.origin}${location.pathname}?sent=1`;
+
   form.action = `https://formsubmit.co/${encodeURIComponent(inbox())}`;
+
+  if (!cvLink) {
+    form.submit();
+    return;
+  }
+
+  const payload = new FormData(form);
+  payload.set("attachment", file, file.name);
+
+  try {
+    const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(inbox())}`, {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      body: payload,
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok && json.success !== false) {
+      showSuccess();
+      return;
+    }
+  } catch (_) {
+    /* fall back to a normal form post so the CV still goes */
+  }
+
   form.submit();
 });

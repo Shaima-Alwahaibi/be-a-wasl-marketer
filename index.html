@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#12263A" />
     <title>كن مسوّق وصل | WASL</title>
     <meta
@@ -16,7 +16,7 @@
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=3" />
+    <link rel="stylesheet" href="styles.css?v=6" />
   </head>
   <body>
     <div class="bg"></div>
@@ -52,8 +52,8 @@
       <section class="card">
         <div id="success" class="success" hidden>
           <img src="assets/wasl-logo.png" alt="" width="72" height="72" style="border-radius: 20px; background: #000" />
-          <h2 data-i18n="successTitle">تم إرسال الطلب</h2>
-          <p class="lead" data-i18n="successText">استلمنا النموذج والسيرة الذاتية. سيراجعه فريق وصل.</p>
+          <h2 data-i18n="successTitle">شكراً لك</h2>
+          <p class="lead" data-i18n="successText">سيتواصل معك فريق وصل خلال أسبوعين.</p>
         </div>
 
         <form id="join-form" method="POST" enctype="multipart/form-data">
@@ -66,6 +66,8 @@
           <input type="hidden" name="_subject" value="WASL marketer application" />
           <input type="hidden" name="_next" value="" />
           <input type="hidden" name="formLanguage" value="Arabic" />
+          <input type="hidden" name="CV_File_Name" value="" />
+          <input type="hidden" name="CV_Download_Link" value="" />
 
           <div class="grid">
             <div>
@@ -161,9 +163,9 @@
             <div>
               <span class="legend"><span data-i18n="cv">السيرة الذاتية</span> <span class="req">*</span></span>
               <div class="file" id="file-box">
-                <input id="attachment" name="attachment" type="file" required accept=".pdf,.doc,.docx,application/pdf" />
+                <input id="attachment" name="attachment" type="file" required accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,application/pdf,image/*" />
                 <strong id="file-name" data-i18n="cvPick">اضغط لإرفاق السيرة الذاتية</strong>
-                <span data-i18n="cvHint">PDF أو Word. الحجم الأقصى 8 ميجا.</span>
+                <span data-i18n="cvHint">PDF أو Word أو صورة. الحجم الأقصى 8 ميجا.</span>
               </div>
             </div>
 
@@ -177,7 +179,7 @@
 
       <p class="foot" data-i18n="footer">وصل — انضم إلى فريق التسويق</p>
     </main>
-    <script src="config.js?v=3"></script>
-    <script src="app.js?v=3"></script>
+    <script src="config.js?v=6"></script>
+    <script src="app.js?v=6"></script>
   </body>
 </html>
