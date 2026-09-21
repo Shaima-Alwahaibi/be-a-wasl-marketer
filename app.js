@@ -2,115 +2,234 @@ const I18N = {
   en: {
     dir: "ltr",
     lang: "en",
-    kicker: "Join the team",
-    title: "Be a WASL marketer",
+    kicker: "For students",
+    title: "Join WASL marketers",
+    heroLead: "A chance for students to turn their marketing skills into real experience and extra income",
+    heroAsk: "Are you a student who loves marketing?",
     intro:
-      "WASL is a simple system for companies. You can help introduce companies to our platform. For every company that joins WASL through you, you get a commission.",
-    pill1: "Commission per company",
-    pill2: "Join our market team",
-    pill3: "One-page application",
-    formTitle: "Apply to join",
-    formLead: "Tell us a little about yourself. You get a commission for every company that joins WASL through you.",
+      "At WASL we look for students with a passion for marketing who want to try their skills on a real project, work with real companies, and learn by doing.",
+    pill1: "Real experience",
+    pill2: "Extra income",
+    pill3: "Real companies",
+    applyCta: "Apply to join →",
+    aboutTitle: "About WASL and the opportunity",
+    whatWasl: "What is WASL?",
+    whatWaslText:
+      "WASL is a digital platform that helps companies organize daily work in one place: customers, products, quotations, invoices, delivery, inventory, and reports.",
+    needFromYou: "What do we need from you?",
+    needFromYouText:
+      "You will be responsible for WASL marketing content — from the idea to filming, producing, and posting on social media. You will also be part of the content and appear on camera when needed.",
+    needFromYouMore:
+      "Most important: good experience in video filming, Video Editing, and content creation, and being comfortable and confident on camera presenting WASL clearly.",
+    needFromYouGoal:
+      "Our goal is not that you just post an ad. We want to see how you start a conversation, create an opportunity, and get the client to learn more about WASL.",
+    youGet: "What do you get?",
+    get1: "Extra income tied to real results: 10% of every completed sale",
+    get2: "Practical experience with real companies",
+    get3: "Communication, persuasion, and presenting skills",
+    get4: "Strong experience for your CV and portfolio",
+    get5: "A chance to learn and grow with an Omani tech project",
+    whoTitle: "Are you the person we are looking for?",
+    who1: "A current student, or at the start of your path",
+    who2: "You have tried marketing in some way: a university project, student club, account, content, event, campaign, or personal project",
+    who3: "You can communicate in Arabic and English",
+    who4: "You are comfortable meeting new people and companies",
+    who5: "You are open to appearing in WASL content, campaigns, or events when needed",
+    who6: "You are proactive, committed, and you like to learn and try",
+    part1Step: "Part 1",
+    part1Title: "We want to get to know you",
     name: "Full name",
     age: "Age",
-    gender: "Gender",
-    male: "Male",
-    female: "Female",
-    phone: "Phone",
+    hours: "About how many hours a week can you give WASL?",
+    hoursPh: "e.g. 8",
+    university: "University / college",
+    major: "Major",
+    phone: "Phone / WhatsApp",
     email: "Email",
-    likesPeople: "Do you like talking with people and meeting new companies?",
-    whySuitable: "Why do you think you are suitable for this opportunity?",
-    whySuitablePh: "What makes you a good fit for WASL",
-    helpReach: "How can you help WASL reach new companies?",
-    helpReachPh: "How you will introduce WASL to companies",
-    expect: "What do you expect from us?",
-    before: "Have you done marketing before?",
-    yes: "Yes",
-    no: "No",
-    forWhat: "For what did you market?",
-    forWhatPh: "Product, company, or service",
-    result: "How was the result?",
-    resultPh: "What happened, and what did you achieve?",
+    linkedin: "LinkedIn or professional account",
+    linkedinPh: "Optional link",
+    optional: "optional",
+    part2Step: "Part 2",
+    part2Title: "Show us your skill",
+    qTried: "What marketing experiences have you already tried?",
+    qTriedPh: "University project, student club, account, content, event, campaign, or personal project",
+    qStrong: "Which part of marketing do you love most, or feel strongest in?",
+    qStrongPh: "Content, video, design, talking to people, campaigns...",
+    qManaged: "Have you ever managed an account, made content, run an event, or worked with clients?",
+    qManagedPh: "Tell us what you did",
+    workTitle: "Attach your work",
+    workHint: "Upload a file and/or add a link. You do not need a professional portfolio — any sample that shows your skill is enough.",
+    workPick: "Click to upload a work sample",
+    workFileHint: "PDF, Word, or image. 20 KB to 2 MB.",
+    workLink: "Or a link to your work / account / video",
+    workLinkPh: "https://",
+    filePicked: "Selected",
     cv: "CV",
     cvHint: "PDF or Word only. 20 KB to 2 MB.",
     cvPick: "Click to attach your CV",
     cvPicked: "Selected",
-    submit: "Send application",
+    part3Step: "Part 3",
+    part3Title: "Content and camera",
+    qCamera: "Are you comfortable and confident appearing in content and speaking on camera?",
+    qCameraPh: "Tell us how you feel about being on camera",
+    qContent: "Tell us about your experience in video filming, Video Editing, and content creation",
+    qContentPh: "What have you filmed, edited, or posted?",
+    qHelp: "How can you start a conversation, create an opportunity, and get a client to learn more about WASL?",
+    qHelpPh: "How you would introduce WASL",
+    qWhy: "Why do you want to be one of WASL's marketers?",
+    qWhyPh: "What makes this opportunity right for you",
+    qExpect: "What do you expect from the experience with WASL?",
+    beforeStep: "Finally",
+    beforeTitle: "Before sending",
+    c1: "I can communicate in Arabic and English.",
+    c2: "I have a marketing experience or skill I can explain or show a sample of.",
+    c3: "I am okay contacting companies and clients when needed.",
+    c4: "I am okay appearing in WASL content, campaigns, or events when needed.",
+    c5: "I understand that filling this survey does not mean automatic acceptance.",
+    c6: "I understand that commission is calculated according to WASL's approved system and only on eligible payments that have actually been collected.",
+    readyLine: "Ready to turn your skill into a real experience?",
+    submit: "Send join request",
     sending: "Sending...",
     ok: "Thank you. Your full application was sent. We will contact you.",
     err: "Could not send. Please try again.",
     needEmail: "Put your email in config.js first (inbox), then try again.",
     required: "Please fill the required fields.",
-    fileBig: "The CV must be 2 MB or smaller.",
-    fileSmall: "The CV file is too small.",
-    fileType: "Use a PDF or Word file only.",
+    needWork: "Attach a work file or add a work link.",
+    fileBig: "The file must be 2 MB or smaller.",
+    fileSmall: "The file is too small.",
+    fileType: "Use a PDF, Word, or image file only.",
+    cvType: "Use a PDF or Word file only.",
     successTitle: "Thank you",
     successText: "The WASL team will contact you within 2 weeks.",
-    footer: "WASL — Join the marketing team",
+    footer: "WASL — WASL marketers",
   },
   ar: {
     dir: "rtl",
     lang: "ar",
-    kicker: "انضم إلى الفريق",
-    title: "كن مسوّق وصل",
+    kicker: "فرصة للطلاب",
+    title: "انضم إلى مسوّقي وصل",
+    heroLead: "فرصة للطلاب لتحويل مهاراتهم التسويقية إلى خبرة حقيقية ودخل إضافي",
+    heroAsk: "هل أنت طالب تحب التسويق؟",
     intro:
-      "وصل نظام بسيط للشركات. يمكنك المساعدة في تعريف الشركات بمنصتنا، وإذا انضمت شركة عن طريقك، تحصل على عمولة.",
-    pill1: "عمولة عن كل شركة",
-    pill2: "انضم لفريق السوق",
-    pill3: "طلب في صفحة واحدة",
-    formTitle: "قدّم للانضمام",
-    formLead: "أخبرنا عنك باختصار. ستحصل على عمولة عن كل شركة تنضم إلى وصل عن طريقك.",
+      "في وصل نبحث عن طلاب عندهم شغف بالتسويق وحابين يجرّبون مهاراتهم في مشروع حقيقي، ويتعاملون مع شركات فعلية، ويتعلمون من التجربة.",
+    pill1: "خبرة حقيقية",
+    pill2: "دخل إضافي",
+    pill3: "شركات فعلية",
+    applyCta: "قدّم للانضمام ←",
+    aboutTitle: "عن وصل والفرصة",
+    whatWasl: "وش هي وصل؟",
+    whatWaslText:
+      "وصل منصة رقمية تساعد الشركات تنظّم شغلها اليومي في مكان واحد: العملاء، المنتجات، عروض الأسعار، الفواتير، التوصيل، المخزون، والتقارير.",
+    needFromYou: "وش بنحتاج منك؟",
+    needFromYouText:
+      "بتكون مسؤول عن محتوى تسويق وصل — من الفكرة إلى التصوير، الإنتاج، والنشر في السوشيال ميديا. وبتكون جزء من المحتوى وتظهر أمام الكاميرا عند الحاجة.",
+    needFromYouMore:
+      "الأهم: خبرة جيدة في تصوير الفيديو، Video Editing، وصناعة المحتوى، وأن تكون مرتاح وواثق في الكلام أمام الكاميرا وتقدّم وصل بوضوح.",
+    needFromYouGoal:
+      "هدفنا مو إنك بس تنشر إعلان. نبي نشوف كيف تبدأ حديث، تصنع فرصة، وتقنع العميل يعرف أكثر عن وصل.",
+    youGet: "وش بتستفيد؟",
+    get1: "دخل إضافي مرتبط بنتيجة فعلية: 10٪ من كل عملية بيع مكتملة",
+    get2: "تجربة عملية مع شركات حقيقية",
+    get3: "مهارات تواصل، إقناع، وتقديم",
+    get4: "خبرة قوية تضيفها للسيرة الذاتية والبورتفوليو",
+    get5: "فرصة تتعلم وتتطور مع مشروع تقني عماني",
+    whoTitle: "هل أنت الشخص اللي نبحث عنه؟",
+    who1: "طالب حالياً، أو في بداية مسارك",
+    who2: "جرّبت التسويق بطريقة ما: مشروع جامعي، نادي طلابي، حساب، محتوى، فعالية، حملة، أو مشروع شخصي",
+    who3: "تقدر تتواصل بالعربي والإنجليزي",
+    who4: "مرتاح تتعرف على ناس وشركات جديدة",
+    who5: "ما عندك مانع تظهر في محتوى أو حملات أو فعاليات وصل عند الحاجة",
+    who6: "مبادر، ملتزم، وتحب تتعلم وتجرّب",
+    part1Step: "الجزء الأول",
+    part1Title: "نريد نتعرف عليك",
     name: "الاسم الكامل",
     age: "العمر",
-    gender: "الجنس",
-    male: "ذكر",
-    female: "أنثى",
-    phone: "رقم الهاتف",
+    hours: "كم ساعة تقريبًا تقدر تخصصها أسبوعيًا لوصل؟",
+    hoursPh: "مثال: 8",
+    university: "الجامعة / الكلية",
+    major: "التخصص",
+    phone: "رقم الهاتف / واتساب",
     email: "البريد الإلكتروني",
-    likesPeople: "هل تحب التواصل مع الناس والتعرف على شركات جديدة؟",
-    whySuitable: "لماذا تعتقد أنك مناسب لهذه الفرصة؟",
-    whySuitablePh: "ما الذي يجعلك مناسباً لوصل",
-    helpReach: "كيف يمكنك مساعدة وصل في الوصول إلى شركات جديدة؟",
-    helpReachPh: "كيف ستعرّف الشركات على وصل",
-    expect: "ماذا تتوقع منا؟",
-    before: "هل سبق أن عملت في التسويق؟",
-    yes: "نعم",
-    no: "لا",
-    forWhat: "سوّقت لأي شيء؟",
-    forWhatPh: "منتج أو شركة أو خدمة",
-    result: "كيف كانت النتيجة؟",
-    resultPh: "ماذا حصل، وما الذي حققته؟",
+    linkedin: "LinkedIn أو حساب مهني",
+    linkedinPh: "رابط اختياري",
+    optional: "اختياري",
+    part2Step: "الجزء الثاني",
+    part2Title: "ورّنا مهارتك",
+    qTried: "وش التجارب التسويقية اللي سبق وجربتها؟",
+    qTriedPh: "مشروع جامعي، نادي طلابي، حساب، محتوى، فعالية، حملة، أو مشروع شخصي",
+    qStrong: "وش أكثر جانب في التسويق تحبه أو تحس نفسك قوي فيه؟",
+    qStrongPh: "محتوى، فيديو، تصميم، تواصل مع الناس، حملات...",
+    qManaged: "هل سبق أدرت حسابًا، أو صنعت محتوى، أو نظّمت فعالية، أو تعاملت مع عملاء؟",
+    qManagedPh: "احكِ لنا وش سويت",
+    workTitle: "أرفق أعمالك",
+    workHint: "ارفع ملف و/أو أضف رابط. ما نحتاج بورتفوليو احترافي — أي نموذج يوضح مهارتك يكفي.",
+    workPick: "اضغط لرفع ملف من أعمالك",
+    workFileHint: "PDF أو Word أو صورة. من 20 كيلو إلى 2 ميجا.",
+    workLink: "أو رابط لأعمالك / حسابك / فيديو",
+    workLinkPh: "https://",
+    filePicked: "تم اختيار",
     cv: "السيرة الذاتية",
     cvHint: "PDF أو Word فقط. من 20 كيلو إلى 2 ميجا.",
     cvPick: "اضغط لإرفاق السيرة الذاتية",
     cvPicked: "تم اختيار",
-    submit: "إرسال الطلب",
+    part3Step: "الجزء الثالث",
+    part3Title: "المحتوى والكاميرا",
+    qCamera: "هل أنت مرتاح وواثق تظهر في المحتوى وتتكلم أمام الكاميرا؟",
+    qCameraPh: "احكِ لنا كيف تحس نفسك أمام الكاميرا",
+    qContent: "احكِ لنا عن خبرتك في تصوير الفيديو، Video Editing، وصناعة المحتوى",
+    qContentPh: "وش صوّرت أو حرّرت أو نشرت؟",
+    qHelp: "كيف تقدر تبدأ حديث، تصنع فرصة، وتقنع العميل يعرف أكثر عن وصل؟",
+    qHelpPh: "كيف بتعرّف الشركات على وصل",
+    qWhy: "لماذا تبي تكون من مسوّقي وصل؟",
+    qWhyPh: "وش اللي يخلي هالفرصة مناسبة لك",
+    qExpect: "وش تتوقع من التجربة مع وصل؟",
+    beforeStep: "أخيراً",
+    beforeTitle: "قبل الإرسال",
+    c1: "أقدر أتواصل بالعربي والإنجليزي.",
+    c2: "عندي تجربة أو مهارة تسويقية أقدر أوضحها أو أعرض نموذجًا منها.",
+    c3: "ما عندي مانع أتواصل مع الشركات والعملاء عند الحاجة.",
+    c4: "ما عندي مانع من الظهور في محتوى أو حملات أو فعاليات وصل عند الحاجة.",
+    c5: "أفهم أن تعبئة الاستبيان ما تعني القبول تلقائيًا.",
+    c6: "أفهم أن العمولة تُحسب وفق نظام وصل المعتمد وعلى المدفوعات المؤهلة التي تم تحصيلها فعليًا.",
+    readyLine: "جاهز تحوّل مهارتك إلى تجربة حقيقية؟",
+    submit: "إرسال طلب الانضمام",
     sending: "جاري الإرسال...",
     ok: "شكراً لك. تم إرسال طلبك كاملاً. سنتواصل معك.",
     err: "تعذر الإرسال. حاول مرة أخرى.",
     needEmail: "ضع بريدك في ملف config.js أولاً ثم أعد المحاولة.",
     required: "أكمل الحقول المطلوبة.",
-    fileBig: "يجب ألا يتجاوز ملف السيرة 2 ميجا.",
-    fileSmall: "ملف السيرة صغير جداً.",
-    fileType: "استخدم ملف PDF أو Word فقط.",
+    needWork: "أرفق ملف أعمال أو أضف رابط.",
+    fileBig: "يجب ألا يتجاوز الملف 2 ميجا.",
+    fileSmall: "الملف صغير جداً.",
+    fileType: "استخدم ملف PDF أو Word أو صورة فقط.",
+    cvType: "استخدم ملف PDF أو Word فقط.",
     successTitle: "شكراً لك",
     successText: "سيتواصل معك فريق وصل خلال أسبوعين.",
-    footer: "وصل — انضم إلى فريق التسويق",
+    footer: "وصل — مسوّقي وصل",
   },
 };
 
 const MIN_FILE = 20 * 1024;
 const MAX_FILE = 2 * 1024 * 1024;
-const ALLOWED_EXT = ["pdf", "doc", "docx"];
-const ALLOWED_TYPES = [
+const CV_EXT = ["pdf", "doc", "docx"];
+const WORK_EXT = ["pdf", "doc", "docx", "png", "jpg", "jpeg"];
+const CV_TYPES = [
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
+const WORK_TYPES = [
+  ...CV_TYPES,
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+];
+
 const form = document.getElementById("join-form");
-const extra = document.getElementById("experience-extra");
 const fileBox = document.getElementById("file-box");
 const fileName = document.getElementById("file-name");
+const workBox = document.getElementById("work-box");
+const workName = document.getElementById("work-name");
 const statusEl = document.getElementById("status");
 const successEl = document.getElementById("success");
 const submitBtn = document.getElementById("submit-btn");
@@ -125,9 +244,10 @@ function applyLang(lang) {
   const t = I18N[lang];
   document.documentElement.lang = t.lang;
   document.documentElement.dir = t.dir;
-  document.title = lang === "ar" ? "كن مسوّق وصل | WASL" : "Be a WASL Marketer | وصل";
+  document.title = lang === "ar" ? "انضم إلى مسوّقي وصل | WASL" : "Join WASL marketers | وصل";
   document.querySelectorAll("[data-i18n]").forEach((el) => {
-    el.textContent = t[el.dataset.i18n];
+    const value = t[el.dataset.i18n];
+    if (value != null) el.textContent = value;
   });
   document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
     el.placeholder = t[el.dataset.i18nPlaceholder];
@@ -135,9 +255,16 @@ function applyLang(lang) {
   document.querySelectorAll(".lang button").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.lang === lang);
   });
-  const file = form.attachment.files[0];
-  fileName.textContent = file ? `${t.cvPicked}: ${file.name}` : t.cvPick;
+  refreshFileLabels();
   localStorage.setItem("wasl-marketer-lang", lang);
+}
+
+function refreshFileLabels() {
+  const t = I18N[currentLang()];
+  const cv = form.attachment.files[0];
+  const work = form.workFile.files[0];
+  fileName.textContent = cv ? `${t.cvPicked}: ${cv.name}` : t.cvPick;
+  workName.textContent = work ? `${t.filePicked}: ${work.name}` : t.workPick;
 }
 
 function showStatus(type, message) {
@@ -154,19 +281,8 @@ function inboxReady() {
   return email && !/your_email@example\.com/i.test(email);
 }
 
-function toggleExperience() {
-  const yes = form.querySelector('input[name="marketedBefore"]:checked')?.value === "Yes";
-  extra.classList.toggle("open", yes);
-  form.marketedFor.required = yes;
-  form.marketingResult.required = yes;
-}
-
 document.querySelectorAll(".lang button").forEach((btn) => {
   btn.addEventListener("click", () => applyLang(btn.dataset.lang));
-});
-
-form.querySelectorAll('input[name="marketedBefore"]').forEach((el) => {
-  el.addEventListener("change", toggleExperience);
 });
 
 function fileExtension(name) {
@@ -178,41 +294,46 @@ function fileExtension(name) {
   return parts[parts.length - 1];
 }
 
-async function looksLikeSafeCv(file) {
+async function looksLikeSafeFile(file, kind) {
   const header = new Uint8Array(await file.slice(0, 8).arrayBuffer());
   const pdf = header[0] === 0x25 && header[1] === 0x50 && header[2] === 0x44 && header[3] === 0x46;
   const doc = header[0] === 0xd0 && header[1] === 0xcf && header[2] === 0x11 && header[3] === 0xe0;
-  const docx = header[0] === 0x50 && header[1] === 0x4b;
-  return pdf || doc || docx;
+  const zip = header[0] === 0x50 && header[1] === 0x4b;
+  const jpeg = header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
+  const png = header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4e && header[3] === 0x47;
+  if (kind === "cv") return pdf || doc || zip;
+  return pdf || doc || zip || jpeg || png;
 }
 
-async function cvError(file) {
-  if (!file) return "required";
+async function fileProblem(file, kind) {
+  if (!file) return kind === "cv" ? "" : "needWork";
   if (file.size < MIN_FILE) return "fileSmall";
   if (file.size > MAX_FILE) return "fileBig";
   const ext = fileExtension(file.name);
-  if (!ALLOWED_EXT.includes(ext)) return "fileType";
-  if (file.type && !ALLOWED_TYPES.includes(file.type)) return "fileType";
-  if (!(await looksLikeSafeCv(file))) return "fileType";
+  const allowedExt = kind === "cv" ? CV_EXT : WORK_EXT;
+  const allowedTypes = kind === "cv" ? CV_TYPES : WORK_TYPES;
+  if (!allowedExt.includes(ext)) return kind === "cv" ? "cvType" : "fileType";
+  if (file.type && !allowedTypes.includes(file.type)) return kind === "cv" ? "cvType" : "fileType";
+  if (!(await looksLikeSafeFile(file, kind))) return kind === "cv" ? "cvType" : "fileType";
   return "";
 }
 
-function clearCv() {
-  form.attachment.value = "";
-  fileBox.classList.remove("ready");
-  fileName.textContent = I18N[currentLang()].cvPick;
+function clearFile(input, box, label, emptyText) {
+  input.value = "";
+  box.classList.remove("ready");
+  label.textContent = emptyText;
 }
 
 form.attachment.addEventListener("change", async () => {
   const t = I18N[currentLang()];
   const file = form.attachment.files[0];
   if (!file) {
-    clearCv();
+    clearFile(form.attachment, fileBox, fileName, t.cvPick);
     return;
   }
-  const error = await cvError(file);
+  const error = await fileProblem(file, "cv");
   if (error) {
-    clearCv();
+    clearFile(form.attachment, fileBox, fileName, t.cvPick);
     showStatus("err", t[error]);
     return;
   }
@@ -221,12 +342,29 @@ form.attachment.addEventListener("change", async () => {
   fileName.textContent = `${t.cvPicked}: ${file.name}`;
 });
 
+form.workFile.addEventListener("change", async () => {
+  const t = I18N[currentLang()];
+  const file = form.workFile.files[0];
+  if (!file) {
+    clearFile(form.workFile, workBox, workName, t.workPick);
+    return;
+  }
+  const error = await fileProblem(file, "work");
+  if (error) {
+    clearFile(form.workFile, workBox, workName, t.workPick);
+    showStatus("err", t[error]);
+    return;
+  }
+  statusEl.className = "status";
+  workBox.classList.add("ready");
+  workName.textContent = `${t.filePicked}: ${file.name}`;
+});
+
 if (new URLSearchParams(location.search).get("sent") === "1") {
   showSuccess();
 }
 
 applyLang(currentLang());
-toggleExperience();
 
 function showSuccess() {
   form.hidden = true;
@@ -235,7 +373,14 @@ function showSuccess() {
   successEl.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-async function uploadCv(file) {
+function makeMarketerCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let id = "";
+  for (let i = 0; i < 6; i += 1) id += chars[Math.floor(Math.random() * chars.length)];
+  return `WASL-${id}`;
+}
+
+async function uploadFile(file) {
   try {
     const body = new FormData();
     body.append("file", file, file.name);
@@ -275,32 +420,57 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  const file = form.attachment.files[0];
-  const fileProblem = await cvError(file);
-  if (fileProblem) {
-    showStatus("err", t[fileProblem]);
+  const workFile = form.workFile.files[0];
+  const workLink = String(form.workLink.value || "").trim();
+  if (!workFile && !workLink) {
+    showStatus("err", t.needWork);
+    form.workLink.focus();
     return;
+  }
+
+  if (workFile) {
+    const workIssue = await fileProblem(workFile, "work");
+    if (workIssue) {
+      showStatus("err", t[workIssue]);
+      return;
+    }
+  }
+
+  const cvFile = form.attachment.files[0];
+  if (cvFile) {
+    const cvIssue = await fileProblem(cvFile, "cv");
+    if (cvIssue) {
+      showStatus("err", t[cvIssue]);
+      return;
+    }
   }
 
   submitBtn.disabled = true;
   submitBtn.textContent = t.sending;
 
-  const cvLink = await uploadCv(file);
-  form.querySelector('[name="CV_File_Name"]').value = file.name;
+  const workLinkUrl = workFile ? await uploadFile(workFile) : "";
+  const cvLink = cvFile ? await uploadFile(cvFile) : "";
+  const nativeFile = cvFile || workFile;
+
+  form.querySelector('[name="marketerCode"]').value = makeMarketerCode();
+  form.querySelector('[name="CV_File_Name"]').value = cvFile ? cvFile.name : "";
   form.querySelector('[name="CV_Download_Link"]').value = cvLink || "";
+  form.querySelector('[name="Work_File_Name"]').value = workFile ? workFile.name : "";
+  form.querySelector('[name="Work_Download_Link"]').value = workLinkUrl || workLink;
   form.querySelector('[name="_subject"]').value = `WASL marketer application — ${form.fullName.value}`;
   form.querySelector('[name="formLanguage"]').value = currentLang() === "ar" ? "Arabic" : "English";
   form.querySelector('[name="_next"]').value = `${location.origin}${location.pathname}?sent=1`;
-
   form.action = `https://formsubmit.co/${encodeURIComponent(inbox())}`;
 
-  if (!cvLink) {
+  if (nativeFile && !(cvFile ? cvLink : workLinkUrl)) {
     form.submit();
     return;
   }
 
   const payload = new FormData(form);
-  payload.set("attachment", file, file.name);
+  if (cvFile) payload.set("attachment", cvFile, cvFile.name);
+  else payload.delete("attachment");
+  if (workFile) payload.set("workFile", workFile, workFile.name);
 
   try {
     const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(inbox())}`, {
@@ -314,7 +484,7 @@ form.addEventListener("submit", async (event) => {
       return;
     }
   } catch (_) {
-    /* fall back to a normal form post so the CV still goes */
+    /* fall back to a normal form post */
   }
 
   form.submit();
