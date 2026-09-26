@@ -266,6 +266,28 @@ body {
   line-height: 1.75;
 }
 
+.stage {
+  margin-top: 14px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.stage h3 {
+  margin: 4px 0 10px;
+}
+
+.stage .points li {
+  background: var(--canvas);
+}
+
+.stage-goal {
+  margin: 12px 0 0;
+  font-weight: 700;
+  color: var(--navy);
+}
+
 .points {
   list-style: none;
   margin: 0;
