@@ -321,6 +321,14 @@ function inbox() {
   return String(window.WASL_CONFIG?.inbox || "").trim();
 }
 
+function ccList() {
+  const extra = window.WASL_CONFIG?.cc;
+  if (Array.isArray(extra)) {
+    return extra.map((email) => String(email || "").trim()).filter(Boolean).join(",");
+  }
+  return String(extra || "").trim();
+}
+
 function inboxReady() {
   const email = inbox();
   return email && !/your_email@example\.com/i.test(email);
@@ -545,6 +553,7 @@ form.addEventListener("submit", async (event) => {
   form.querySelector('[name="_subject"]').value = `WASL marketer application — ${form.fullName.value}`;
   form.querySelector('[name="formLanguage"]').value = currentLang() === "ar" ? "Arabic" : "English";
   form.querySelector('[name="_next"]').value = `${location.origin}${location.pathname}?sent=1`;
+  form.querySelector('[name="_cc"]').value = ccList();
   form.action = `https://formsubmit.co/${encodeURIComponent(inbox())}`;
   form.removeAttribute("target");
 
