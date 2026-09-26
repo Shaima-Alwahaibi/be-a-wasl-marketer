@@ -523,14 +523,16 @@ form.addEventListener("submit", async (event) => {
   submitBtn.disabled = true;
   submitBtn.textContent = t.sending;
 
-  // FormSubmit only attaches the field named "attachment".
-  // Work sample (PDF / image / video) is the main attachment.
-  // If there is only a CV, send that as the attachment instead.
   workInput.name = workFile ? "attachment" : "workFile";
   cvInput.name = !workFile && cvFile ? "attachment" : "cvFile";
 
+  let workDl = workLink;
+  if (workFile) {
+    const uploaded = await uploadFile(workFile);
+    if (uploaded) workDl = uploaded;
+  }
   let cvLink = "";
-  if (workFile && cvFile) {
+  if (cvFile) {
     cvLink = await uploadFile(cvFile);
   }
 
@@ -538,21 +540,26 @@ form.addEventListener("submit", async (event) => {
   form.querySelector('[name="CV_File_Name"]').value = cvFile ? cvFile.name : "";
   form.querySelector('[name="CV_Download_Link"]').value = cvLink;
   form.querySelector('[name="Work_File_Name"]').value = workFile ? workFile.name : "";
-  form.querySelector('[name="Work_Download_Link"]').value = workLink;
+  form.querySelector('[name="Work_Download_Link"]').value = workDl;
+  form.querySelector('[name="Open_the_attached_file"]').value = workDl || cvLink || "";
   form.querySelector('[name="_subject"]').value = `WASL marketer application — ${form.fullName.value}`;
   form.querySelector('[name="formLanguage"]').value = currentLang() === "ar" ? "Arabic" : "English";
   form.querySelector('[name="_next"]').value = `${location.origin}${location.pathname}?sent=1`;
+  form.action = `https://formsubmit.co/${encodeURIComponent(inbox())}`;
+  form.removeAttribute("target");
 
-  const payload = new FormData(form);
-  if (workFile) payload.set("attachment", workFile, workFile.name);
-  else if (cvFile) payload.set("attachment", cvFile, cvFile.name);
-  else {
-    payload.delete("attachment");
-    payload.delete("cvFile");
-    payload.delete("workFile");
+  // FormSubmit only puts a real paperclip on the email with a normal form POST,
+  // not with ajax. After the domain is activated it redirects to the WASL thank-you page.
+  if (workFile || cvFile) {
+    form.submit();
+    return;
   }
 
   try {
+    const payload = new FormData(form);
+    payload.delete("attachment");
+    payload.delete("cvFile");
+    payload.delete("workFile");
     const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(inbox())}`, {
       method: "POST",
       headers: { Accept: "application/json" },
