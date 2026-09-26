@@ -16,7 +16,7 @@
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=11" />
+    <link rel="stylesheet" href="styles.css?v=12" />
   </head>
   <body>
     <div class="bg"></div>
@@ -212,9 +212,9 @@
                 <span class="legend"><span data-i18n="workTitle">أرفق أعمالك</span> <span class="req">*</span></span>
                 <p class="hint" data-i18n="workHint">ارفع ملف و/أو أضف رابط لإنستجرام أو ريلز أو فيديو. أي نموذج يوضح مهارتك يكفي.</p>
                 <div class="file" id="work-box">
-                  <input id="workFile" name="workFile" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+                  <input id="workFile" name="attachment" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.webp,.mp4,.mov,.webm,application/pdf,image/png,image/jpeg,image/gif,image/webp,video/mp4,video/quicktime,video/webm,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
                   <strong id="work-name" data-i18n="workPick">اضغط لرفع ملف من أعمالك</strong>
-                  <span data-i18n="workFileHint">PDF أو Word أو صورة. من 20 كيلو إلى 2 ميجا.</span>
+                  <span data-i18n="workFileHint">PDF أو صورة أو فيديو. حتى 10 ميجا — يظهر كمرفق في الإيميل.</span>
                 </div>
                 <label for="workLink" class="follow-label"><span data-i18n="workLink">أو رابط لأعمالك / حسابك / فيديو</span></label>
                 <input id="workLink" name="workLink" type="text" inputmode="url" data-i18n-placeholder="workLinkPh" />
@@ -222,9 +222,9 @@
               <div>
                 <span class="legend"><span data-i18n="cv">السيرة الذاتية</span> <span class="opt" data-i18n="optional">اختياري</span></span>
                 <div class="file" id="file-box">
-                  <input id="attachment" name="attachment" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+                  <input id="cvFile" name="cvFile" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
                   <strong id="file-name" data-i18n="cvPick">اضغط لإرفاق السيرة الذاتية</strong>
-                  <span data-i18n="cvHint">PDF أو Word فقط. من 20 كيلو إلى 2 ميجا.</span>
+                  <span data-i18n="cvHint">PDF أو Word. حتى 10 ميجا — يظهر كمرفق في الإيميل.</span>
                 </div>
               </div>
             </div>
@@ -302,7 +302,7 @@
 
       <p class="foot" data-i18n="footer">وصل — مسوّقي وصل</p>
     </main>
-    <script src="config.js?v=11"></script>
-    <script src="app.js?v=11"></script>
+    <script src="config.js?v=12"></script>
+    <script src="app.js?v=12"></script>
   </body>
 </html>

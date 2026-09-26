@@ -76,12 +76,12 @@ const I18N = {
     workTitle: "Attach your work",
     workHint: "Upload a file and/or add a link to Instagram, a Reel, or a video. Any sample that shows your skill is enough.",
     workPick: "Click to upload a work sample",
-    workFileHint: "PDF, Word, or image. 20 KB to 2 MB.",
+    workFileHint: "PDF, image, or video. Up to 10 MB — it is sent as an email attachment.",
     workLink: "Or a link to your work / account / video",
     workLinkPh: "https://",
     filePicked: "Selected",
     cv: "CV",
-    cvHint: "PDF or Word only. 20 KB to 2 MB.",
+    cvHint: "PDF or Word. Up to 10 MB — it is sent as an email attachment.",
     cvPick: "Click to attach your CV",
     cvPicked: "Selected",
     part3Step: "Part 3",
@@ -112,9 +112,9 @@ const I18N = {
     needEmail: "Put your email in config.js first (inbox), then try again.",
     required: "Please fill the required fields.",
     needWork: "Attach a work file or add a work link.",
-    fileBig: "The file must be 2 MB or smaller.",
+    fileBig: "The file must be 10 MB or smaller.",
     fileSmall: "The file is too small.",
-    fileType: "Use a PDF, Word, or image file only.",
+    fileType: "Use a PDF, image, or video file.",
     cvType: "Use a PDF or Word file only.",
     successTitle: "Thank you",
     successText: "The WASL team will contact you within 2 weeks.",
@@ -197,12 +197,12 @@ const I18N = {
     workTitle: "أرفق أعمالك",
     workHint: "ارفع ملف و/أو أضف رابط لإنستجرام أو ريلز أو فيديو. أي نموذج يوضح مهارتك يكفي.",
     workPick: "اضغط لرفع ملف من أعمالك",
-    workFileHint: "PDF أو Word أو صورة. من 20 كيلو إلى 2 ميجا.",
+    workFileHint: "PDF أو صورة أو فيديو. حتى 10 ميجا — يظهر كمرفق في الإيميل.",
     workLink: "أو رابط لأعمالك / حسابك / فيديو",
     workLinkPh: "https://",
     filePicked: "تم اختيار",
     cv: "السيرة الذاتية",
-    cvHint: "PDF أو Word فقط. من 20 كيلو إلى 2 ميجا.",
+    cvHint: "PDF أو Word. حتى 10 ميجا — يظهر كمرفق في الإيميل.",
     cvPick: "اضغط لإرفاق السيرة الذاتية",
     cvPicked: "تم اختيار",
     part3Step: "الجزء الثالث",
@@ -233,9 +233,9 @@ const I18N = {
     needEmail: "ضع بريدك في ملف config.js أولاً ثم أعد المحاولة.",
     required: "أكمل الحقول المطلوبة.",
     needWork: "أرفق ملف أعمال أو أضف رابط.",
-    fileBig: "يجب ألا يتجاوز الملف 2 ميجا.",
+    fileBig: "يجب ألا يتجاوز الملف 10 ميجا.",
     fileSmall: "الملف صغير جداً.",
-    fileType: "استخدم ملف PDF أو Word أو صورة فقط.",
+    fileType: "استخدم ملف PDF أو صورة أو فيديو.",
     cvType: "استخدم ملف PDF أو Word فقط.",
     successTitle: "شكراً لك",
     successText: "سيتواصل معك فريق وصل خلال أسبوعين.",
@@ -243,10 +243,10 @@ const I18N = {
   },
 };
 
-const MIN_FILE = 20 * 1024;
-const MAX_FILE = 2 * 1024 * 1024;
+const MIN_FILE = 8 * 1024;
+const MAX_FILE = 10 * 1024 * 1024;
 const CV_EXT = ["pdf", "doc", "docx"];
-const WORK_EXT = ["pdf", "doc", "docx", "png", "jpg", "jpeg"];
+const WORK_EXT = ["pdf", "doc", "docx", "png", "jpg", "jpeg", "gif", "webp", "mp4", "mov", "webm"];
 const CV_TYPES = [
   "application/pdf",
   "application/msword",
@@ -257,6 +257,11 @@ const WORK_TYPES = [
   "image/png",
   "image/jpeg",
   "image/jpg",
+  "image/gif",
+  "image/webp",
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
 ];
 
 const form = document.getElementById("join-form");
@@ -264,6 +269,8 @@ const fileBox = document.getElementById("file-box");
 const fileName = document.getElementById("file-name");
 const workBox = document.getElementById("work-box");
 const workName = document.getElementById("work-name");
+const workInput = document.getElementById("workFile");
+const cvInput = document.getElementById("cvFile");
 const statusEl = document.getElementById("status");
 const successEl = document.getElementById("success");
 const submitBtn = document.getElementById("submit-btn");
@@ -295,8 +302,8 @@ function applyLang(lang) {
 
 function refreshFileLabels() {
   const t = I18N[currentLang()];
-  const cv = form.attachment.files[0];
-  const work = form.workFile.files[0];
+  const cv = cvInput.files[0];
+  const work = workInput.files[0];
   fileName.textContent = cv ? `${t.cvPicked}: ${cv.name}` : t.cvPick;
   workName.textContent = work ? `${t.filePicked}: ${work.name}` : t.workPick;
 }
@@ -329,14 +336,26 @@ function fileExtension(name) {
 }
 
 async function looksLikeSafeFile(file, kind) {
-  const header = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+  const header = new Uint8Array(await file.slice(0, 16).arrayBuffer());
   const pdf = header[0] === 0x25 && header[1] === 0x50 && header[2] === 0x44 && header[3] === 0x46;
   const doc = header[0] === 0xd0 && header[1] === 0xcf && header[2] === 0x11 && header[3] === 0xe0;
   const zip = header[0] === 0x50 && header[1] === 0x4b;
   const jpeg = header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
   const png = header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4e && header[3] === 0x47;
+  const gif = header[0] === 0x47 && header[1] === 0x49 && header[2] === 0x46 && header[3] === 0x38;
+  const webp =
+    header[0] === 0x52 &&
+    header[1] === 0x49 &&
+    header[2] === 0x46 &&
+    header[3] === 0x46 &&
+    header[8] === 0x57 &&
+    header[9] === 0x45 &&
+    header[10] === 0x42 &&
+    header[11] === 0x50;
+  const mp4OrMov = header[4] === 0x66 && header[5] === 0x74 && header[6] === 0x79 && header[7] === 0x70;
+  const webm = header[0] === 0x1a && header[1] === 0x45 && header[2] === 0xdf && header[3] === 0xa3;
   if (kind === "cv") return pdf || doc || zip;
-  return pdf || doc || zip || jpeg || png;
+  return pdf || doc || zip || jpeg || png || gif || webp || mp4OrMov || webm;
 }
 
 async function fileProblem(file, kind) {
@@ -347,7 +366,9 @@ async function fileProblem(file, kind) {
   const allowedExt = kind === "cv" ? CV_EXT : WORK_EXT;
   const allowedTypes = kind === "cv" ? CV_TYPES : WORK_TYPES;
   if (!allowedExt.includes(ext)) return kind === "cv" ? "cvType" : "fileType";
-  if (file.type && !allowedTypes.includes(file.type)) return kind === "cv" ? "cvType" : "fileType";
+  if (file.type && file.type !== "application/octet-stream" && !allowedTypes.includes(file.type)) {
+    return kind === "cv" ? "cvType" : "fileType";
+  }
   if (!(await looksLikeSafeFile(file, kind))) return kind === "cv" ? "cvType" : "fileType";
   return "";
 }
@@ -358,16 +379,16 @@ function clearFile(input, box, label, emptyText) {
   label.textContent = emptyText;
 }
 
-form.attachment.addEventListener("change", async () => {
+cvInput.addEventListener("change", async () => {
   const t = I18N[currentLang()];
-  const file = form.attachment.files[0];
+  const file = cvInput.files[0];
   if (!file) {
-    clearFile(form.attachment, fileBox, fileName, t.cvPick);
+    clearFile(cvInput, fileBox, fileName, t.cvPick);
     return;
   }
   const error = await fileProblem(file, "cv");
   if (error) {
-    clearFile(form.attachment, fileBox, fileName, t.cvPick);
+    clearFile(cvInput, fileBox, fileName, t.cvPick);
     showStatus("err", t[error]);
     return;
   }
@@ -376,16 +397,16 @@ form.attachment.addEventListener("change", async () => {
   fileName.textContent = `${t.cvPicked}: ${file.name}`;
 });
 
-form.workFile.addEventListener("change", async () => {
+workInput.addEventListener("change", async () => {
   const t = I18N[currentLang()];
-  const file = form.workFile.files[0];
+  const file = workInput.files[0];
   if (!file) {
-    clearFile(form.workFile, workBox, workName, t.workPick);
+    clearFile(workInput, workBox, workName, t.workPick);
     return;
   }
   const error = await fileProblem(file, "work");
   if (error) {
-    clearFile(form.workFile, workBox, workName, t.workPick);
+    clearFile(workInput, workBox, workName, t.workPick);
     showStatus("err", t[error]);
     return;
   }
@@ -454,7 +475,7 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  const workFile = form.workFile.files[0];
+  const workFile = workInput.files[0];
   const workLink = String(form.workLink.value || "").trim();
   if (!workFile && !workLink) {
     showStatus("err", t.needWork);
@@ -470,7 +491,7 @@ form.addEventListener("submit", async (event) => {
     }
   }
 
-  const cvFile = form.attachment.files[0];
+  const cvFile = cvInput.files[0];
   if (cvFile) {
     const cvIssue = await fileProblem(cvFile, "cv");
     if (cvIssue) {
@@ -482,31 +503,37 @@ form.addEventListener("submit", async (event) => {
   submitBtn.disabled = true;
   submitBtn.textContent = t.sending;
 
-  const workLinkUrl = workFile ? await uploadFile(workFile) : "";
-  const cvLink = cvFile ? await uploadFile(cvFile) : "";
-  const nativeFile = cvFile || workFile;
+  // FormSubmit only attaches the field named "attachment".
+  // Work sample (PDF / image / video) is the main attachment.
+  // If there is only a CV, send that as the attachment instead.
+  workInput.name = workFile ? "attachment" : "workFile";
+  cvInput.name = !workFile && cvFile ? "attachment" : "cvFile";
+
+  let cvLink = "";
+  if (workFile && cvFile) {
+    cvLink = await uploadFile(cvFile);
+  }
 
   form.querySelector('[name="marketerCode"]').value = makeMarketerCode();
   form.querySelector('[name="CV_File_Name"]').value = cvFile ? cvFile.name : "";
-  form.querySelector('[name="CV_Download_Link"]').value = cvLink || "";
+  form.querySelector('[name="CV_Download_Link"]').value = cvLink;
   form.querySelector('[name="Work_File_Name"]').value = workFile ? workFile.name : "";
-  form.querySelector('[name="Work_Download_Link"]').value = workLinkUrl || workLink;
+  form.querySelector('[name="Work_Download_Link"]').value = workLink;
   form.querySelector('[name="_subject"]').value = `WASL marketer application — ${form.fullName.value}`;
   form.querySelector('[name="formLanguage"]').value = currentLang() === "ar" ? "Arabic" : "English";
   form.querySelector('[name="_next"]').value = `${location.origin}${location.pathname}?sent=1`;
   form.action = `https://formsubmit.co/${encodeURIComponent(inbox())}`;
 
-  if (nativeFile && !(cvFile ? cvLink : workLinkUrl)) {
+  if (workFile || cvFile) {
     form.submit();
     return;
   }
 
-  const payload = new FormData(form);
-  if (cvFile) payload.set("attachment", cvFile, cvFile.name);
-  else payload.delete("attachment");
-  if (workFile) payload.set("workFile", workFile, workFile.name);
-
   try {
+    const payload = new FormData(form);
+    payload.delete("attachment");
+    payload.delete("cvFile");
+    payload.delete("workFile");
     const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(inbox())}`, {
       method: "POST",
       headers: { Accept: "application/json" },
