@@ -109,6 +109,8 @@ const I18N = {
     sending: "Sending...",
     ok: "Thank you. Your full application was sent. We will contact you.",
     err: "Could not send. Please try again.",
+    needActivate:
+      "This new website needs one email activation. Open Hotmail (and Junk), click Activate Form from FormSubmit, then send the application again. After that you will see the WASL thank-you page.",
     needEmail: "Put your email in config.js first (inbox), then try again.",
     required: "Please fill the required fields.",
     needWork: "Attach a work file or add a work link.",
@@ -230,6 +232,8 @@ const I18N = {
     sending: "جاري الإرسال...",
     ok: "شكراً لك. تم إرسال طلبك كاملاً. سنتواصل معك.",
     err: "تعذر الإرسال. حاول مرة أخرى.",
+    needActivate:
+      "هذا الموقع الجديد يحتاج تفعيل مرة واحدة. افتحي هوتميل (وكمان البريد غير المرغوب)، اضغطي Activate Form من FormSubmit، بعدين أرسلي الطلب مرة ثانية. بعدها تظهر صفحة شكر وصل.",
     needEmail: "ضع بريدك في ملف config.js أولاً ثم أعد المحاولة.",
     required: "أكمل الحقول المطلوبة.",
     needWork: "أرفق ملف أعمال أو أضف رابط.",
@@ -428,6 +432,22 @@ function showSuccess() {
   successEl.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
+function resetSubmit() {
+  submitBtn.disabled = false;
+  submitBtn.textContent = I18N[currentLang()].submit;
+}
+
+function needsActivation(json, raw) {
+  const blob = `${json?.message || ""} ${json?.error || ""} ${raw || ""}`.toLowerCase();
+  return /activat/.test(blob) || /check your email/.test(blob);
+}
+
+function formSubmitOk(res, json) {
+  if (!res.ok) return false;
+  if (json.success === false || json.success === "false") return false;
+  return true;
+}
+
 function makeMarketerCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let id = "";
@@ -522,31 +542,46 @@ form.addEventListener("submit", async (event) => {
   form.querySelector('[name="_subject"]').value = `WASL marketer application — ${form.fullName.value}`;
   form.querySelector('[name="formLanguage"]').value = currentLang() === "ar" ? "Arabic" : "English";
   form.querySelector('[name="_next"]').value = `${location.origin}${location.pathname}?sent=1`;
-  form.action = `https://formsubmit.co/${encodeURIComponent(inbox())}`;
 
-  if (workFile || cvFile) {
-    form.submit();
-    return;
-  }
-
-  try {
-    const payload = new FormData(form);
+  const payload = new FormData(form);
+  if (workFile) payload.set("attachment", workFile, workFile.name);
+  else if (cvFile) payload.set("attachment", cvFile, cvFile.name);
+  else {
     payload.delete("attachment");
     payload.delete("cvFile");
     payload.delete("workFile");
+  }
+
+  try {
     const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(inbox())}`, {
       method: "POST",
       headers: { Accept: "application/json" },
       body: payload,
     });
-    const json = await res.json().catch(() => ({}));
-    if (res.ok && json.success !== false) {
+    const raw = await res.text();
+    let json = {};
+    try {
+      json = JSON.parse(raw);
+    } catch (_) {
+      json = {};
+    }
+
+    if (needsActivation(json, raw)) {
+      showStatus("err", t.needActivate);
+      resetSubmit();
+      return;
+    }
+
+    if (formSubmitOk(res, json)) {
       showSuccess();
       return;
     }
   } catch (_) {
-    /* fall back to a normal form post */
+    showStatus("err", t.err);
+    resetSubmit();
+    return;
   }
 
-  form.submit();
+  showStatus("err", t.err);
+  resetSubmit();
 });
