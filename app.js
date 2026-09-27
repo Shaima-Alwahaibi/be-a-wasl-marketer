@@ -10,7 +10,7 @@ const I18N = {
     aboutTitle: "About WASL and the opportunity",
     whatWasl: "What is WASL?",
     whatWaslText:
-      "WASL is a simple digital platform that helps companies organize daily work in one place: customers, products, quotes, invoices, delivery, inventory, and reports.",
+      "WASL is a digital platform that helps companies organize daily work in one place: customers, products, quotes, invoices, delivery, inventory, and reports.",
     needFromYou: "What do we need from you?",
     need1: "Run the social media accounts and marketing",
     need2: "Make videos and content regularly",
@@ -128,7 +128,7 @@ const I18N = {
     aboutTitle: "عن وصل والفرصة",
     whatWasl: "ما هي وصل؟",
     whatWaslText:
-      "وصل هي منصة رقمية بسيطة تساعد الشركات على تنظيم أعمالها اليومية في مكان واحد: العملاء، والمنتجات، وعروض الأسعار، والفواتير، والتوصيل، والمخزون، والتقارير.",
+      "وصل هي منصة رقمية تساعد الشركات على تنظيم أعمالها اليومية في مكان واحد: العملاء، والمنتجات، وعروض الأسعار، والفواتير، والتوصيل، والمخزون، والتقارير.",
     needFromYou: "ماذا نحتاج منك؟",
     need1: "إدارة حسابات التواصل الاجتماعي والتسويق",
     need2: "صناعة فيديوهات ومحتوى بشكل مستمر",
