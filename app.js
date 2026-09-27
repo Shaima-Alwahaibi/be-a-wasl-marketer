@@ -34,7 +34,7 @@ const I18N = {
     stage2Text:
       "After a solid audience is in place, the content gradually talks about the project itself: the problem it solves, and how the platform helps business owners organize invoices, quotations, inventory, reports, and more.",
     stage3Step: "Stage 3",
-    stage3Title: "Sales and compensation",
+    stage3Title: "Sales",
     stage3Text:
       "Before launch and sales, the focus is audience, content, and preparing the market. After the platform launches and real money starts, the marketer and content creator gets 10% for content, marketing, building the audience, and helping bring customers and grow the project.",
     stage3Goal: "The 10% starts with money after launch, not while we build the audience and prepare.",
@@ -152,7 +152,7 @@ const I18N = {
     stage2Text:
       "بعد بناء قاعدة جماهيرية مناسبة، يبدأ المحتوى بالتدرّج في الحديث عن المشروع نفسه: المشكلة التي يحلّها، وكيف تساعد المنصة أصحاب الأعمال على تنظيم أعمالهم، مثل الفواتير، والعروض، والمخزون، والتقارير وغيرها.",
     stage3Step: "المرحلة الثالثة",
-    stage3Title: "المبيعات والتعويض",
+    stage3Title: "المبيعات",
     stage3Text:
       "قبل الإطلاق وتحقيق المبيعات، يكون التركيز على بناء الجمهور وصناعة المحتوى وتجهيز السوق. بعد إطلاق المنصة وبدء إيرادات فعلية، يحصل المسوّق وصانع المحتوى على نسبة 10٪ مقابل صناعة المحتوى، وإدارة التسويق، وبناء الجمهور، والمساهمة في جذب العملاء ونمو المشروع.",
     stage3Goal: "تبدأ نسبة الـ 10٪ مع تحقيق الإيرادات بعد الإطلاق، وليس خلال فترة بناء الجمهور والتحضير.",
