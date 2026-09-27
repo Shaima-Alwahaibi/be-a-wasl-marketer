@@ -6,8 +6,6 @@ const I18N = {
     title: "Join WASL marketers",
     heroLead: "We are looking for someone to run the social media accounts and marketing — not to sell the product from day one.",
     heroAsk: "Ready to build the audience before launch?",
-    intro:
-      "At first we focus on making content and building a real audience. After the audience is ready, we start talking about WASL. After the platform launches and makes real money, the share is 10%.",
     applyCta: "Apply to join →",
     aboutTitle: "About WASL and the opportunity",
     whatWasl: "What is WASL?",
@@ -126,8 +124,6 @@ const I18N = {
     title: "انضم إلى مسوّقي وصل",
     heroLead: "نبحث عن شخص يدير حسابات التواصل الاجتماعي والتسويق للمشروع، وليس بيع المنتج من اليوم الأول.",
     heroAsk: "هل أنت مستعد لبناء الجمهور قبل الإطلاق؟",
-    intro:
-      "في البداية نركّز على صناعة المحتوى وبناء جمهور حقيقي. بعد أن يصبح الجمهور جاهزًا، نبدأ الحديث عن وصل. وبعد إطلاق المنصة وتحقيق إيرادات فعلية، تكون النسبة 10٪.",
     applyCta: "قدّم للانضمام ←",
     aboutTitle: "عن وصل والفرصة",
     whatWasl: "ما هي وصل؟",
