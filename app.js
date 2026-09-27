@@ -16,7 +16,6 @@ const I18N = {
     need2: "Make videos and content regularly",
     need3: "Edit videos and design clear, attractive content",
     need5: "Talk about topics that help business owners",
-    need6: "At the start, the content is not about selling the product",
     stagesTitle: "The stages",
     stagesLead:
       "This is a long-term partnership. You are a core part of building the project from the start, with an ongoing reason to grow the content, the audience, and the project.",
@@ -133,7 +132,6 @@ const I18N = {
     need2: "صناعة فيديوهات ومحتوى بشكل مستمر",
     need3: "مونتاج الفيديو وتصميم محتوى واضح وجذاب",
     need5: "الحديث عن مواضيع تفيد أصحاب الأعمال ورواد الأعمال",
-    need6: "في البداية، المحتوى ليس عن بيع المنتج",
     stagesTitle: "المراحل",
     stagesLead:
       "الفكرة تعاون طويل المدى. تكون جزءًا أساسيًا من رحلة بناء المشروع من البداية، ويكون لديك حافز مستمر لتطوير المحتوى وزيادة الجمهور وتحقيق نمو فعلي.",
