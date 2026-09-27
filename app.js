@@ -2,7 +2,7 @@ const I18N = {
   en: {
     dir: "ltr",
     lang: "en",
-    kicker: "Content · growth",
+    kicker: "Growth - extra income",
     title: "Join WASL marketers",
     heroLead: "Looking for an income and a chance to grow? If you have a passion for marketing and content, turn your skills into a real opportunity: earn, learn, get practical experience, and grow with us at WASL.",
     heroAsk: "Are you ready to be part of the WASL team?",
@@ -118,7 +118,7 @@ const I18N = {
   ar: {
     dir: "rtl",
     lang: "ar",
-    kicker: "محتوى · نمو",
+    kicker: "نمو - دخل إضافي",
     title: "انضم إلى مسوّقي وصل",
     heroLead: "تبحث عن مصدر دخل وفرصة تطوّر فيها نفسك؟ إذا كان لديك شغف بالتسويق وصناعة المحتوى، حوّل مهاراتك إلى فرصة حقيقية تكسب منها، وتتعلّم، وتكتسب خبرة عملية، وتكبر معنا في وصل.",
     heroAsk: "هل أنت مستعد أن تكون جزءًا من فريق وصل؟",
