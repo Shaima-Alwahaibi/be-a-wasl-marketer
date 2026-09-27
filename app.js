@@ -7,7 +7,7 @@ const I18N = {
     heroLead: "Looking for an income and a chance to grow? If you have a passion for marketing and content, turn your skills into a real opportunity: earn, learn, get practical experience, and grow with us at WASL.",
     heroAsk: "Are you ready to be part of the WASL team?",
     applyCta: "Apply to join →",
-    aboutTitle: "About WASL and the opportunity",
+    aboutTitle: "About WASL",
     whatWasl: "What is WASL?",
     whatWaslText:
       "WASL is a digital platform that helps companies organize daily work in one place: customers, products, quotes, invoices, delivery, inventory, and reports.",
@@ -125,7 +125,7 @@ const I18N = {
     heroLead: "تبحث عن مصدر دخل وفرصة تطوّر فيها نفسك؟ إذا كان لديك شغف بالتسويق وصناعة المحتوى، حوّل مهاراتك إلى فرصة حقيقية تكسب منها، وتتعلّم، وتكتسب خبرة عملية، وتكبر معنا في وصل.",
     heroAsk: "هل أنت مستعد أن تكون جزءًا من فريق وصل؟",
     applyCta: "قدّم للانضمام ←",
-    aboutTitle: "عن وصل والفرصة",
+    aboutTitle: "عن وصل",
     whatWasl: "ما هي وصل؟",
     whatWaslText:
       "وصل هي منصة رقمية تساعد الشركات على تنظيم أعمالها اليومية في مكان واحد: العملاء، والمنتجات، وعروض الأسعار، والفواتير، والتوصيل، والمخزون، والتقارير.",
