@@ -104,6 +104,7 @@ const I18N = {
     sending: "Sending...",
     ok: "Thank you. Your full application was sent. We will contact you.",
     err: "Could not send. Please try again.",
+    netErr: "The connection dropped. Press Send again.",
     needActivate:
       "This new website needs one email activation. Open Hotmail (and Junk), click Activate Form from FormSubmit, then send the application again. After that you will see the WASL thank-you page.",
     needEmail: "Put your email in config.js first (inbox), then try again.",
@@ -222,6 +223,7 @@ const I18N = {
     sending: "جارٍ الإرسال...",
     ok: "شكرًا لك. تم إرسال طلبك كاملًا. سنتواصل معك.",
     err: "تعذّر الإرسال. حاول مرة أخرى.",
+    netErr: "انقطع الاتصال. اضغط إرسال مرة أخرى.",
     needActivate:
       "هذا الموقع الجديد يحتاج تفعيلًا مرة واحدة. افتحي هوتميل (وصندوق البريد غير المرغوب فيه)، اضغطي Activate Form من FormSubmit، ثم أرسلي الطلب مرة ثانية. بعدها تظهر صفحة شكر وصل.",
     needEmail: "ضع بريدك في ملف config.js أولًا ثم أعد المحاولة.",
@@ -437,9 +439,19 @@ function makeMarketerCode() {
   return `WASL-${id}`;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function resetSendButton() {
+  const t = I18N[currentLang()];
+  submitBtn.disabled = false;
+  submitBtn.textContent = t.submit;
+}
+
 async function postForm(url, body) {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 12000);
+  const timer = setTimeout(() => ctrl.abort(), 15000);
   try {
     return await fetch(url, { method: "POST", body, signal: ctrl.signal });
   } finally {
@@ -447,7 +459,7 @@ async function postForm(url, body) {
   }
 }
 
-async function uploadFile(file) {
+async function uploadOnce(file) {
   try {
     const body = new FormData();
     body.append("file", file, file.name);
@@ -471,6 +483,13 @@ async function uploadFile(file) {
     /* link may stay empty */
   }
   return "";
+}
+
+async function uploadFile(file) {
+  const first = await uploadOnce(file);
+  if (first) return first;
+  await sleep(1000);
+  return uploadOnce(file);
 }
 
 function labeledValue(id) {
@@ -552,6 +571,8 @@ function postToInbox({ fullName, email, phone, message }) {
   mail.submit();
 }
 
+window.addEventListener("pageshow", resetSendButton);
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const t = I18N[currentLang()];
@@ -609,11 +630,23 @@ form.addEventListener("submit", async (event) => {
     /* still send the rest of the form */
   }
 
-  const code = makeMarketerCode();
-  postToInbox({
-    fullName: form.fullName.value,
-    email: form.email.value,
-    phone: form.phone.value,
-    message: applicationMessage({ code, workFile, cvFile, workDl, cvLink }),
-  });
+  const stay = window.setTimeout(() => {
+    if (!submitBtn.disabled) return;
+    resetSendButton();
+    showStatus("err", t.netErr);
+  }, 18000);
+
+  try {
+    const code = makeMarketerCode();
+    postToInbox({
+      fullName: form.fullName.value,
+      email: form.email.value,
+      phone: form.phone.value,
+      message: applicationMessage({ code, workFile, cvFile, workDl, cvLink }),
+    });
+  } catch (_) {
+    window.clearTimeout(stay);
+    resetSendButton();
+    showStatus("err", t.netErr);
+  }
 });
