@@ -451,21 +451,17 @@ function makeMarketerCode() {
   return `WASL-${id}`;
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function resetSendButton() {
   const t = I18N[currentLang()];
   submitBtn.disabled = false;
   submitBtn.textContent = t.submit;
 }
 
-async function postForm(url, body, headers) {
+async function postForm(url, body) {
   const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 4000);
+  const timer = setTimeout(() => ctrl.abort(), 4000);
   try {
-    return await fetch(url, { method: "POST", body, headers, signal: ctrl.signal });
+    return await fetch(url, { method: "POST", body, signal: ctrl.signal });
   } finally {
     clearTimeout(timer);
   }
@@ -498,9 +494,6 @@ async function uploadOnce(file) {
 }
 
 async function uploadFile(file) {
-  const first = await uploadOnce(file);
-  if (first) return first;
-  await sleep(1000);
   return uploadOnce(file);
 }
 
@@ -555,50 +548,40 @@ function applicationMessage({ code, workFile, cvFile, workDl, cvLink }) {
     .join("\n");
 }
 
-async function sendToInbox({ fullName, email, message }) {
-  const key = String(window.WASL_CONFIG?.web3forms || "").trim();
-  if (key) {
-    const payload = {
-      access_key: key,
-      from_name: "WASL marketers",
-      subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
-      name: String(fullName || "").slice(0, 120),
-      email,
-      message: message.slice(0, 8000),
-    };
-    const copies = ccList();
-    if (copies) payload.ccemail = copies;
-    const res = await fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok || json.success === false) throw new Error("send");
-    return;
-  }
+function addHidden(mail, name, value) {
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = name;
+  input.value = value == null ? "" : String(value);
+  mail.appendChild(input);
+}
 
-  const body = new FormData();
-  body.append("name", String(fullName || "").slice(0, 120));
-  body.append("email", email);
-  body.append("message", message.slice(0, 8000));
-  body.append("_subject", `WASL marketer application — ${String(fullName || "").slice(0, 80)}`);
-  body.append("_captcha", "false");
-  const res = await fetch(`https://formsubmit.co/ajax/${inbox()}`, {
-    method: "POST",
-    headers: { Accept: "application/json" },
-    body,
-  });
-  const json = await res.json().catch(() => ({}));
-  const note = String(json.message || json.error || "");
-  if (/activate/i.test(note)) {
-    const err = new Error("activate");
-    err.code = "activate";
-    throw err;
+function postToInbox({ fullName, email, message }) {
+  let frame = document.getElementById("wasl-send-frame");
+  if (!frame) {
+    frame = document.createElement("iframe");
+    frame.id = "wasl-send-frame";
+    frame.name = "wasl-send-frame";
+    frame.hidden = true;
+    frame.setAttribute("aria-hidden", "true");
+    document.body.appendChild(frame);
   }
-  if (!res.ok || /server error/i.test(note) || json.success === false || json.success === "false") {
-    throw new Error("send");
-  }
+  const mail = document.createElement("form");
+  mail.method = "POST";
+  mail.action = `https://formsubmit.co/${inbox()}`;
+  mail.target = "wasl-send-frame";
+  mail.acceptCharset = "UTF-8";
+  mail.style.display = "none";
+  addHidden(mail, "name", String(fullName || "").slice(0, 120));
+  addHidden(mail, "email", email);
+  addHidden(mail, "_subject", `WASL marketer application — ${String(fullName || "").slice(0, 80)}`);
+  addHidden(mail, "_captcha", "false");
+  addHidden(mail, "_template", "box");
+  addHidden(mail, "message", message.slice(0, 8000));
+  const copies = ccList();
+  if (copies) addHidden(mail, "_cc", copies);
+  document.body.appendChild(mail);
+  mail.submit();
 }
 
 window.addEventListener("pageshow", resetSendButton);
@@ -659,21 +642,16 @@ form.addEventListener("submit", async (event) => {
     }
   }
 
-  try {
-    await sendToInbox({
-      fullName: form.fullName.value,
-      email: form.email.value,
-      message: applicationMessage({
-        code: makeMarketerCode(),
-        workFile,
-        cvFile,
-        workDl,
-        cvLink,
-      }),
-    });
-    showSuccess();
-  } catch (error) {
-    resetSendButton();
-    showStatus("err", error && error.code === "activate" ? t.needActivate : t.err);
-  }
+  postToInbox({
+    fullName: form.fullName.value,
+    email: form.email.value,
+    message: applicationMessage({
+      code: makeMarketerCode(),
+      workFile,
+      cvFile,
+      workDl,
+      cvLink,
+    }),
+  });
+  showSuccess();
 });
