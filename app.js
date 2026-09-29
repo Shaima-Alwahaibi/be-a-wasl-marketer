@@ -103,7 +103,7 @@ const I18N = {
     submit: "Send join request",
     sending: "Sending...",
     ok: "Thank you. Your full application was sent. We will contact you.",
-    err: "Could not send. Please try again.",
+    err: "The mail server is down, so this request was not sent.",
     netErr: "The connection dropped. Press Send again.",
     needActivate:
       "This new website needs one email activation. Open Hotmail (and Junk), click Activate Form from FormSubmit, then send the application again. After that you will see the WASL thank-you page.",
@@ -222,7 +222,7 @@ const I18N = {
     submit: "إرسال طلب الانضمام",
     sending: "جارٍ الإرسال...",
     ok: "شكرًا لك. تم إرسال طلبك كاملًا. سنتواصل معك.",
-    err: "تعذّر الإرسال. حاول مرة أخرى.",
+    err: "خادم البريد متوقف، لذلك لم يُرسل الطلب.",
     netErr: "انقطع الاتصال. اضغط إرسال مرة أخرى.",
     needActivate:
       "هذا الموقع الجديد يحتاج تفعيلًا مرة واحدة. افتحي هوتميل (وصندوق البريد غير المرغوب فيه)، اضغطي Activate Form من FormSubmit، ثم أرسلي الطلب مرة ثانية. بعدها تظهر صفحة شكر وصل.",
@@ -548,40 +548,26 @@ function applicationMessage({ code, workFile, cvFile, workDl, cvLink }) {
     .join("\n");
 }
 
-function addHidden(mail, name, value) {
-  const input = document.createElement("input");
-  input.type = "hidden";
-  input.name = name;
-  input.value = value == null ? "" : String(value);
-  mail.appendChild(input);
-}
-
-function postToInbox({ fullName, email, message }) {
-  let frame = document.getElementById("wasl-send-frame");
-  if (!frame) {
-    frame = document.createElement("iframe");
-    frame.id = "wasl-send-frame";
-    frame.name = "wasl-send-frame";
-    frame.hidden = true;
-    frame.setAttribute("aria-hidden", "true");
-    document.body.appendChild(frame);
-  }
-  const mail = document.createElement("form");
-  mail.method = "POST";
-  mail.action = `https://formsubmit.co/${inbox()}`;
-  mail.target = "wasl-send-frame";
-  mail.acceptCharset = "UTF-8";
-  mail.style.display = "none";
-  addHidden(mail, "name", String(fullName || "").slice(0, 120));
-  addHidden(mail, "email", email);
-  addHidden(mail, "_subject", `WASL marketer application — ${String(fullName || "").slice(0, 80)}`);
-  addHidden(mail, "_captcha", "false");
-  addHidden(mail, "_template", "box");
-  addHidden(mail, "message", message.slice(0, 8000));
+async function sendToInbox({ fullName, email, message }) {
+  const key = String(window.WASL_CONFIG?.web3forms || "").trim();
+  if (!key) throw new Error("send");
+  const payload = {
+    access_key: key,
+    from_name: "WASL marketers",
+    subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
+    name: String(fullName || "").slice(0, 120),
+    email,
+    message: message.slice(0, 8000),
+  };
   const copies = ccList();
-  if (copies) addHidden(mail, "_cc", copies);
-  document.body.appendChild(mail);
-  mail.submit();
+  if (copies) payload.ccemail = copies;
+  const res = await fetch("https://api.web3forms.com/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json.success !== true) throw new Error("send");
 }
 
 window.addEventListener("pageshow", resetSendButton);
@@ -642,16 +628,21 @@ form.addEventListener("submit", async (event) => {
     }
   }
 
-  postToInbox({
-    fullName: form.fullName.value,
-    email: form.email.value,
-    message: applicationMessage({
-      code: makeMarketerCode(),
-      workFile,
-      cvFile,
-      workDl,
-      cvLink,
-    }),
-  });
-  showSuccess();
+  try {
+    await sendToInbox({
+      fullName: form.fullName.value,
+      email: form.email.value,
+      message: applicationMessage({
+        code: makeMarketerCode(),
+        workFile,
+        cvFile,
+        workDl,
+        cvLink,
+      }),
+    });
+    showSuccess();
+  } catch (_) {
+    resetSendButton();
+    showStatus("err", t.err);
+  }
 });
