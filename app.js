@@ -70,12 +70,12 @@ const I18N = {
     workTitle: "Attach your work",
     workHint: "Upload a file and/or add a link to your work or a video. Any sample that shows your skill is enough.",
     workPick: "Click to upload a work sample",
-    workFileHint: "PDF, image, or video. Up to 10 MB — it is sent as an email attachment.",
+    workFileHint: "PDF, image, or video. Up to 10 MB.",
     workLink: "Or a link to your work / account / video",
     workLinkPh: "https://",
     filePicked: "Selected",
     cv: "CV",
-    cvHint: "PDF or Word. Up to 10 MB — it is sent as an email attachment.",
+    cvHint: "PDF or Word. Up to 10 MB.",
     cvPick: "Click to attach your CV",
     cvPicked: "Selected",
     part3Step: "Part 3",
@@ -188,12 +188,12 @@ const I18N = {
     workTitle: "أرفق أعمالك",
     workHint: "ارفع ملفًا و/أو أضف رابطًا لأعمالك أو لفيديو. أي نموذج يوضح مهارتك يكفي.",
     workPick: "اضغط لرفع ملف من أعمالك",
-    workFileHint: "PDF أو صورة أو فيديو. حتى 10 ميغابايت — يظهر كمرفق في البريد الإلكتروني.",
+    workFileHint: "PDF أو صورة أو فيديو. حتى 10 ميغابايت.",
     workLink: "أو رابط لأعمالك / حسابك / فيديو",
     workLinkPh: "https://",
     filePicked: "تم الاختيار",
     cv: "السيرة الذاتية",
-    cvHint: "PDF أو Word. حتى 10 ميغابايت — يظهر كمرفق في البريد الإلكتروني.",
+    cvHint: "PDF أو Word. حتى 10 ميغابايت.",
     cvPick: "اضغط لإرفاق السيرة الذاتية",
     cvPicked: "تم الاختيار",
     part3Step: "الجزء الثالث",
@@ -437,11 +437,6 @@ function makeMarketerCode() {
   return `WASL-${id}`;
 }
 
-function canEmailAttach(file) {
-  const ext = fileExtension(file?.name);
-  return ["pdf", "doc", "docx", "png", "jpg", "jpeg", "gif", "webp"].includes(ext);
-}
-
 async function postForm(url, body) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 12000);
@@ -473,25 +468,88 @@ async function uploadFile(file) {
     const text = (await res.text()).trim();
     if (/^https?:\/\//i.test(text)) return text;
   } catch (_) {
-    /* native attachment remains */
+    /* link may stay empty */
   }
   return "";
 }
 
-function prepareFilesForMail(workFile, cvFile) {
-  workInput.disabled = true;
-  cvInput.disabled = true;
-  workInput.name = "workFile";
-  cvInput.name = "cvFile";
-  if (workFile && canEmailAttach(workFile)) {
-    workInput.disabled = false;
-    workInput.name = "attachment";
-    return;
-  }
-  if (cvFile && canEmailAttach(cvFile)) {
-    cvInput.disabled = false;
-    cvInput.name = "attachment";
-  }
+function labeledValue(id) {
+  const el = document.getElementById(id);
+  const label = document.querySelector(`label[for="${id}"]`);
+  const title = label ? label.innerText.replace(/\s+/g, " ").trim() : id;
+  return `${title}: ${el ? String(el.value || "").trim() : ""}`;
+}
+
+function checkedLines() {
+  return [...form.querySelectorAll(".checks input:checked")].map((input) => {
+    const text = input.parentElement?.innerText.replace(/\s+/g, " ").trim();
+    return `- ${text || input.name}`;
+  });
+}
+
+function applicationMessage({ code, workFile, cvFile, workDl, cvLink }) {
+  return [
+    `Marketer code: ${code}`,
+    `Language: ${currentLang() === "ar" ? "Arabic" : "English"}`,
+    ccList() ? `Please also notify: ${ccList()}` : "",
+    "",
+    labeledValue("fullName"),
+    labeledValue("age"),
+    labeledValue("university"),
+    labeledValue("major"),
+    labeledValue("phone"),
+    labeledValue("email"),
+    labeledValue("socialAccounts"),
+    labeledValue("linkedin"),
+    labeledValue("weeklyHours"),
+    "",
+    labeledValue("marketingTried"),
+    labeledValue("strongestSkill"),
+    labeledValue("managedWork"),
+    `Work file: ${workFile ? workFile.name : ""}`,
+    `Work link: ${workDl || ""}`,
+    `CV file: ${cvFile ? cvFile.name : ""}`,
+    `CV link: ${cvLink || ""}`,
+    "",
+    labeledValue("cameraComfort"),
+    labeledValue("contentSkill"),
+    labeledValue("helpReach"),
+    labeledValue("whyJoin"),
+    labeledValue("expectations"),
+    "",
+    "Confirmed:",
+    ...checkedLines(),
+  ]
+    .filter((line, i, all) => line !== "" || all[i - 1] !== "")
+    .join("\n");
+}
+
+function addHidden(mail, name, value) {
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = name;
+  input.value = value == null ? "" : String(value);
+  mail.appendChild(input);
+}
+
+function postToInbox({ fullName, email, phone, message }) {
+  const mail = document.createElement("form");
+  mail.method = "POST";
+  mail.action = `https://formsubmit.co/${encodeURIComponent(inbox())}`;
+  mail.enctype = "application/x-www-form-urlencoded";
+  mail.acceptCharset = "UTF-8";
+  mail.style.display = "none";
+  addHidden(mail, "name", fullName);
+  addHidden(mail, "email", email);
+  addHidden(mail, "phone", phone);
+  addHidden(mail, "_subject", `WASL marketer application — ${fullName}`);
+  addHidden(mail, "_captcha", "false");
+  addHidden(mail, "_next", `${location.origin}${location.pathname}?sent=1`);
+  addHidden(mail, "message", message);
+  const copies = ccList();
+  if (copies) addHidden(mail, "_cc", copies);
+  document.body.appendChild(mail);
+  mail.submit();
 }
 
 form.addEventListener("submit", async (event) => {
@@ -546,28 +604,16 @@ form.addEventListener("submit", async (event) => {
       const uploaded = await uploadFile(workFile);
       if (uploaded) workDl = uploaded;
     }
-    if (cvFile) {
-      cvLink = await uploadFile(cvFile);
-    }
+    if (cvFile) cvLink = await uploadFile(cvFile);
   } catch (_) {
     /* still send the rest of the form */
   }
 
-  form.querySelector('[name="marketerCode"]').value = makeMarketerCode();
-  form.querySelector('[name="CV_File_Name"]').value = cvFile ? cvFile.name : "";
-  form.querySelector('[name="CV_Download_Link"]').value = cvLink;
-  form.querySelector('[name="Work_File_Name"]').value = workFile ? workFile.name : "";
-  form.querySelector('[name="Work_Download_Link"]').value = workDl;
-  form.querySelector('[name="Open_the_attached_file"]').value = workDl || cvLink || "";
-  form.querySelector('[name="_subject"]').value = `WASL marketer application — ${form.fullName.value}`;
-  form.querySelector('[name="formLanguage"]').value = currentLang() === "ar" ? "Arabic" : "English";
-  form.querySelector('[name="_next"]').value = `${location.origin}${location.pathname}?sent=1`;
-  form.querySelector('[name="_cc"]').value = ccList();
-  form.action = `https://formsubmit.co/${encodeURIComponent(inbox())}`;
-  form.removeAttribute("target");
-
-  // Empty or video files make FormSubmit return an error page. Send PDF/images
-  // as a paperclip; everything else goes as a download link in the email.
-  prepareFilesForMail(workFile, cvFile);
-  form.submit();
+  const code = makeMarketerCode();
+  postToInbox({
+    fullName: form.fullName.value,
+    email: form.email.value,
+    phone: form.phone.value,
+    message: applicationMessage({ code, workFile, cvFile, workDl, cvLink }),
+  });
 });
