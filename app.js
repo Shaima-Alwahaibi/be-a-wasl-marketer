@@ -337,6 +337,13 @@ function teamEmails() {
   return list.join(", ");
 }
 
+function gmailCopies() {
+  const to = deliveryInbox().toLowerCase();
+  return [inbox(), ...ccList().split(",")]
+    .map((email) => String(email || "").trim())
+    .filter((email) => /@gmail\.com$/i.test(email) && email.toLowerCase() !== to);
+}
+
 function inboxReady() {
   const email = deliveryInbox();
   return email && !/your_email@example\.com/i.test(email);
@@ -579,6 +586,8 @@ function postToInbox({ fullName, email, message }) {
   addHidden(mail, "_captcha", "false");
   addHidden(mail, "_next", `${location.origin}${location.pathname}?sent=1`);
   addHidden(mail, "message", message.slice(0, 8000));
+  const copies = gmailCopies().join(",");
+  if (copies) addHidden(mail, "_cc", copies);
   document.body.appendChild(mail);
   mail.submit();
 }
