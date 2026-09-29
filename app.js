@@ -313,10 +313,6 @@ function inbox() {
   return String(window.WASL_CONFIG?.inbox || "").trim();
 }
 
-function deliveryInbox() {
-  return String(window.WASL_CONFIG?.formInbox || window.WASL_CONFIG?.inbox || "").trim();
-}
-
 function ccList() {
   const extra = window.WASL_CONFIG?.cc;
   if (Array.isArray(extra)) {
@@ -328,7 +324,7 @@ function ccList() {
 function teamEmails() {
   const seen = new Set();
   const list = [];
-  [inbox(), deliveryInbox(), ...ccList().split(",")].forEach((email) => {
+  [inbox(), ...ccList().split(",")].forEach((email) => {
     const clean = String(email || "").trim();
     if (!clean || seen.has(clean.toLowerCase())) return;
     seen.add(clean.toLowerCase());
@@ -337,15 +333,8 @@ function teamEmails() {
   return list.join(", ");
 }
 
-function gmailCopies() {
-  const to = deliveryInbox().toLowerCase();
-  return [inbox(), ...ccList().split(",")]
-    .map((email) => String(email || "").trim())
-    .filter((email) => /@gmail\.com$/i.test(email) && email.toLowerCase() !== to);
-}
-
 function inboxReady() {
-  const email = deliveryInbox();
+  const email = inbox();
   return email && !/your_email@example\.com/i.test(email);
 }
 
@@ -577,17 +566,30 @@ function addHidden(mail, name, value) {
 function postToInbox({ fullName, email, message }) {
   const mail = document.createElement("form");
   mail.method = "POST";
-  mail.action = `https://formsubmit.co/${deliveryInbox()}`;
   mail.acceptCharset = "UTF-8";
   mail.style.display = "none";
-  addHidden(mail, "name", String(fullName || "").slice(0, 120));
-  addHidden(mail, "email", email);
-  addHidden(mail, "_subject", `WASL marketer application — ${String(fullName || "").slice(0, 80)}`);
-  addHidden(mail, "_captcha", "false");
-  addHidden(mail, "_next", `${location.origin}${location.pathname}?sent=1`);
-  addHidden(mail, "message", message.slice(0, 8000));
-  const copies = gmailCopies().join(",");
-  if (copies) addHidden(mail, "_cc", copies);
+  const key = String(window.WASL_CONFIG?.web3forms || "").trim();
+  if (key) {
+    mail.action = "https://api.web3forms.com/submit";
+    addHidden(mail, "access_key", key);
+    addHidden(mail, "from_name", "WASL marketers");
+    addHidden(mail, "subject", `WASL marketer application — ${String(fullName || "").slice(0, 80)}`);
+    addHidden(mail, "redirect", `${location.origin}${location.pathname}?sent=1`);
+    addHidden(mail, "name", String(fullName || "").slice(0, 120));
+    addHidden(mail, "email", email);
+    addHidden(mail, "message", message.slice(0, 8000));
+    const copies = ccList();
+    if (copies) addHidden(mail, "ccemail", copies);
+  } else {
+    mail.action = `https://formsubmit.co/${inbox()}`;
+    addHidden(mail, "name", String(fullName || "").slice(0, 120));
+    addHidden(mail, "email", email);
+    addHidden(mail, "_subject", `WASL marketer application — ${String(fullName || "").slice(0, 80)}`);
+    addHidden(mail, "_captcha", "false");
+    addHidden(mail, "_next", `${location.origin}${location.pathname}?sent=1`);
+    addHidden(mail, "message", message.slice(0, 8000));
+    if (ccList()) addHidden(mail, "_cc", ccList());
+  }
   document.body.appendChild(mail);
   mail.submit();
 }
