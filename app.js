@@ -313,26 +313,6 @@ function inbox() {
   return String(window.WASL_CONFIG?.inbox || "").trim();
 }
 
-function ccList() {
-  const extra = window.WASL_CONFIG?.cc;
-  if (Array.isArray(extra)) {
-    return extra.map((email) => String(email || "").trim()).filter(Boolean).join(",");
-  }
-  return String(extra || "").trim();
-}
-
-function teamEmails() {
-  const seen = new Set();
-  const list = [];
-  [inbox(), ...ccList().split(",")].forEach((email) => {
-    const clean = String(email || "").trim();
-    if (!clean || seen.has(clean.toLowerCase())) return;
-    seen.add(clean.toLowerCase());
-    list.push(clean);
-  });
-  return list.join(", ");
-}
-
 function inboxReady() {
   const email = inbox();
   return email && !/your_email@example\.com/i.test(email);
@@ -444,13 +424,6 @@ function showSuccess() {
   successEl.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-function makeMarketerCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let id = "";
-  for (let i = 0; i < 6; i += 1) id += chars[Math.floor(Math.random() * chars.length)];
-  return `WASL-${id}`;
-}
-
 function resetSendButton() {
   const t = I18N[currentLang()];
   submitBtn.disabled = false;
@@ -497,13 +470,6 @@ async function uploadFile(file) {
   return uploadOnce(file);
 }
 
-function labeledValue(id) {
-  const el = document.getElementById(id);
-  const label = document.querySelector(`label[for="${id}"]`);
-  const title = label ? label.innerText.replace(/\s+/g, " ").trim() : id;
-  return `${title}: ${el ? String(el.value || "").trim() : ""}`;
-}
-
 function checkedLines() {
   return [...form.querySelectorAll(".checks input:checked")].map((input) => {
     const text = input.parentElement?.innerText.replace(/\s+/g, " ").trim();
@@ -511,63 +477,67 @@ function checkedLines() {
   });
 }
 
-function applicationMessage({ code, workFile, cvFile, workDl, cvLink }) {
-  return [
-    `Marketer code: ${code}`,
-    `Language: ${currentLang() === "ar" ? "Arabic" : "English"}`,
-    `Please also notify: ${teamEmails()}`,
-    "",
-    labeledValue("fullName"),
-    labeledValue("age"),
-    labeledValue("university"),
-    labeledValue("major"),
-    labeledValue("phone"),
-    labeledValue("email"),
-    labeledValue("socialAccounts"),
-    labeledValue("linkedin"),
-    labeledValue("weeklyHours"),
-    "",
-    labeledValue("marketingTried"),
-    labeledValue("strongestSkill"),
-    labeledValue("managedWork"),
-    `Work file: ${workFile ? workFile.name : ""}`,
-    `Work link: ${workDl || ""}`,
-    `CV file: ${cvFile ? cvFile.name : ""}`,
-    `CV link: ${cvLink || ""}`,
-    "",
-    labeledValue("cameraComfort"),
-    labeledValue("contentSkill"),
-    labeledValue("helpReach"),
-    labeledValue("whyJoin"),
-    labeledValue("expectations"),
-    "",
-    "Confirmed:",
-    ...checkedLines(),
-  ]
-    .filter((line, i, all) => line !== "" || all[i - 1] !== "")
-    .join("\n");
+async function sendForm(body) {
+  const res = await fetch("https://api.web3forms.com/submit", { method: "POST", body });
+  const json = await res.json().catch(() => ({}));
+  const note = String(json.message || json.body?.message || "");
+  return { ok: res.ok && json.success === true, note };
 }
 
-async function sendToInbox({ fullName, email, message }) {
+function appendAnswer(body, id) {
+  const el = document.getElementById(id);
+  const label = document.querySelector(`label[for="${id}"]`);
+  const title = label ? label.innerText.replace(/\s+/g, " ").trim() : id;
+  body.append(title, el ? String(el.value || "").trim() : "");
+}
+
+async function sendToInbox({ fullName, email, workFile, cvFile, workDl, cvLink }) {
   const key = String(window.WASL_CONFIG?.web3forms || "").trim();
   if (!key) throw new Error("send");
-  const payload = {
-    access_key: key,
-    from_name: "WASL marketers",
-    subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
-    name: String(fullName || "").slice(0, 120),
-    email,
-    message: message.slice(0, 8000),
+
+  const build = (withFiles) => {
+    const body = new FormData();
+    body.append("access_key", key);
+    body.append("from_name", "WASL marketers");
+    body.append("subject", `WASL marketer application — ${String(fullName || "").slice(0, 80)}`);
+    body.append("email", email);
+    body.append("replyto", email);
+    body.append("ccemail", inbox());
+    appendAnswer(body, "fullName");
+    appendAnswer(body, "age");
+    appendAnswer(body, "university");
+    appendAnswer(body, "major");
+    appendAnswer(body, "phone");
+    appendAnswer(body, "email");
+    appendAnswer(body, "socialAccounts");
+    appendAnswer(body, "linkedin");
+    appendAnswer(body, "weeklyHours");
+    appendAnswer(body, "marketingTried");
+    appendAnswer(body, "strongestSkill");
+    appendAnswer(body, "managedWork");
+    body.append("Work file", workFile ? workFile.name : "");
+    body.append("Work link", workDl || "");
+    body.append("CV file", cvFile ? cvFile.name : "");
+    body.append("CV link", cvLink || "");
+    appendAnswer(body, "cameraComfort");
+    appendAnswer(body, "contentSkill");
+    appendAnswer(body, "helpReach");
+    appendAnswer(body, "whyJoin");
+    appendAnswer(body, "expectations");
+    body.append("Confirmed", checkedLines().join("\n"));
+    body.append("Deliver to", inbox());
+    if (withFiles && workFile) body.append("attachment", workFile, workFile.name);
+    if (withFiles && cvFile) body.append("CV", cvFile, cvFile.name);
+    return body;
   };
-  const copies = ccList();
-  if (copies) payload.ccemail = copies;
-  const res = await fetch("https://api.web3forms.com/submit", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(payload),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || json.success !== true) throw new Error("send");
+
+  const canAttach =
+    (!workFile || workFile.size <= 5 * 1024 * 1024) && (!cvFile || cvFile.size <= 5 * 1024 * 1024);
+  let result = await sendForm(build(canAttach && (workFile || cvFile)));
+  if (!result.ok && /pro|attachment|upgrade|file/i.test(result.note)) {
+    result = await sendForm(build(false));
+  }
+  if (!result.ok) throw new Error("send");
 }
 
 window.addEventListener("pageshow", resetSendButton);
@@ -632,13 +602,10 @@ form.addEventListener("submit", async (event) => {
     await sendToInbox({
       fullName: form.fullName.value,
       email: form.email.value,
-      message: applicationMessage({
-        code: makeMarketerCode(),
-        workFile,
-        cvFile,
-        workDl,
-        cvLink,
-      }),
+      workFile,
+      cvFile,
+      workDl,
+      cvLink,
     });
     showSuccess();
   } catch (_) {
