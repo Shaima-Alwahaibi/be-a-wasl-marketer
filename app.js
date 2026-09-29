@@ -313,6 +313,10 @@ function inbox() {
   return String(window.WASL_CONFIG?.inbox || "").trim();
 }
 
+function deliveryInbox() {
+  return String(window.WASL_CONFIG?.formInbox || window.WASL_CONFIG?.inbox || "").trim();
+}
+
 function ccList() {
   const extra = window.WASL_CONFIG?.cc;
   if (Array.isArray(extra)) {
@@ -321,8 +325,20 @@ function ccList() {
   return String(extra || "").trim();
 }
 
+function teamEmails() {
+  const seen = new Set();
+  const list = [];
+  [inbox(), deliveryInbox(), ...ccList().split(",")].forEach((email) => {
+    const clean = String(email || "").trim();
+    if (!clean || seen.has(clean.toLowerCase())) return;
+    seen.add(clean.toLowerCase());
+    list.push(clean);
+  });
+  return list.join(", ");
+}
+
 function inboxReady() {
-  const email = inbox();
+  const email = deliveryInbox();
   return email && !/your_email@example\.com/i.test(email);
 }
 
@@ -510,7 +526,7 @@ function applicationMessage({ code, workFile, cvFile, workDl, cvLink }) {
   return [
     `Marketer code: ${code}`,
     `Language: ${currentLang() === "ar" ? "Arabic" : "English"}`,
-    ccList() ? `Please also notify: ${ccList()}` : "",
+    `Please also notify: ${teamEmails()}`,
     "",
     labeledValue("fullName"),
     labeledValue("age"),
@@ -554,7 +570,7 @@ function addHidden(mail, name, value) {
 function postToInbox({ fullName, email, message }) {
   const mail = document.createElement("form");
   mail.method = "POST";
-  mail.action = `https://formsubmit.co/${inbox()}`;
+  mail.action = `https://formsubmit.co/${deliveryInbox()}`;
   mail.acceptCharset = "UTF-8";
   mail.style.display = "none";
   addHidden(mail, "name", String(fullName || "").slice(0, 120));
