@@ -105,7 +105,6 @@ const I18N = {
     ok: "Thank you. Your full application was sent. We will contact you.",
     err: "Could not send. Please try again.",
     netErr: "The connection dropped. Press Send again.",
-    needKey: "Open Hotmail, copy the Web3Forms Access Key, and send it here.",
     needActivate:
       "This new website needs one email activation. Open Hotmail (and Junk), click Activate Form from FormSubmit, then send the application again. After that you will see the WASL thank-you page.",
     needEmail: "Put your email in config.js first (inbox), then try again.",
@@ -225,7 +224,6 @@ const I18N = {
     ok: "شكرًا لك. تم إرسال طلبك كاملًا. سنتواصل معك.",
     err: "تعذّر الإرسال. حاول مرة أخرى.",
     netErr: "انقطع الاتصال. اضغط إرسال مرة أخرى.",
-    needKey: "افتح هوتميل، انسخ مفتاح Web3Forms، وأرسله هنا.",
     needActivate:
       "هذا الموقع الجديد يحتاج تفعيلًا مرة واحدة. افتحي هوتميل (وصندوق البريد غير المرغوب فيه)، اضغطي Activate Form من FormSubmit، ثم أرسلي الطلب مرة ثانية. بعدها تظهر صفحة شكر وصل.",
     needEmail: "ضع بريدك في ملف config.js أولًا ثم أعد المحاولة.",
@@ -559,28 +557,46 @@ function applicationMessage({ code, workFile, cvFile, workDl, cvLink }) {
 
 async function sendToInbox({ fullName, email, message }) {
   const key = String(window.WASL_CONFIG?.web3forms || "").trim();
-  if (!key) {
-    const err = new Error("needKey");
-    err.code = "needKey";
-    throw err;
+  if (key) {
+    const payload = {
+      access_key: key,
+      from_name: "WASL marketers",
+      subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
+      name: String(fullName || "").slice(0, 120),
+      email,
+      message: message.slice(0, 8000),
+    };
+    const copies = ccList();
+    if (copies) payload.ccemail = copies;
+    const res = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || json.success === false) throw new Error("send");
+    return;
   }
-  const body = {
-    access_key: key,
-    from_name: "WASL marketers",
-    subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
-    name: String(fullName || "").slice(0, 120),
-    email,
-    message: message.slice(0, 8000),
-  };
-  const copies = ccList();
-  if (copies) body.ccemail = copies;
-  const res = await fetch("https://api.web3forms.com/submit", {
+
+  const body = new FormData();
+  body.append("name", String(fullName || "").slice(0, 120));
+  body.append("email", email);
+  body.append("message", message.slice(0, 8000));
+  body.append("_subject", `WASL marketer application — ${String(fullName || "").slice(0, 80)}`);
+  body.append("_captcha", "false");
+  const res = await fetch(`https://formsubmit.co/ajax/${inbox()}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(body),
+    headers: { Accept: "application/json" },
+    body,
   });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok || json.success === false) {
+  const note = String(json.message || json.error || "");
+  if (/activate/i.test(note)) {
+    const err = new Error("activate");
+    err.code = "activate";
+    throw err;
+  }
+  if (!res.ok || /server error/i.test(note) || json.success === false || json.success === "false") {
     throw new Error("send");
   }
 }
@@ -658,6 +674,6 @@ form.addEventListener("submit", async (event) => {
     showSuccess();
   } catch (error) {
     resetSendButton();
-    showStatus("err", error && error.code === "needKey" ? t.needKey : t.err);
+    showStatus("err", error && error.code === "activate" ? t.needActivate : t.err);
   }
 });
