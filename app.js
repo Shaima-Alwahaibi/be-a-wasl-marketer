@@ -105,6 +105,7 @@ const I18N = {
     ok: "Thank you. Your full application was sent. We will contact you.",
     err: "Could not send. Please try again.",
     netErr: "The connection dropped. Press Send again.",
+    needKey: "Open Hotmail, copy the Web3Forms Access Key, and send it here.",
     needActivate:
       "This new website needs one email activation. Open Hotmail (and Junk), click Activate Form from FormSubmit, then send the application again. After that you will see the WASL thank-you page.",
     needEmail: "Put your email in config.js first (inbox), then try again.",
@@ -224,6 +225,7 @@ const I18N = {
     ok: "شكرًا لك. تم إرسال طلبك كاملًا. سنتواصل معك.",
     err: "تعذّر الإرسال. حاول مرة أخرى.",
     netErr: "انقطع الاتصال. اضغط إرسال مرة أخرى.",
+    needKey: "افتح هوتميل، انسخ مفتاح Web3Forms، وأرسله هنا.",
     needActivate:
       "هذا الموقع الجديد يحتاج تفعيلًا مرة واحدة. افتحي هوتميل (وصندوق البريد غير المرغوب فيه)، اضغطي Activate Form من FormSubmit، ثم أرسلي الطلب مرة ثانية. بعدها تظهر صفحة شكر وصل.",
     needEmail: "ضع بريدك في ملف config.js أولًا ثم أعد المحاولة.",
@@ -463,7 +465,7 @@ function resetSendButton() {
 
 async function postForm(url, body, headers) {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 15000);
+    const timer = setTimeout(() => ctrl.abort(), 4000);
   try {
     return await fetch(url, { method: "POST", body, headers, signal: ctrl.signal });
   } finally {
@@ -555,43 +557,32 @@ function applicationMessage({ code, workFile, cvFile, workDl, cvLink }) {
     .join("\n");
 }
 
-function addHidden(mail, name, value) {
-  const input = document.createElement("input");
-  input.type = "hidden";
-  input.name = name;
-  input.value = value == null ? "" : String(value);
-  mail.appendChild(input);
-}
-
-function postToInbox({ fullName, email, message }) {
-  const mail = document.createElement("form");
-  mail.method = "POST";
-  mail.acceptCharset = "UTF-8";
-  mail.style.display = "none";
+async function sendToInbox({ fullName, email, message }) {
   const key = String(window.WASL_CONFIG?.web3forms || "").trim();
-  if (key) {
-    mail.action = "https://api.web3forms.com/submit";
-    addHidden(mail, "access_key", key);
-    addHidden(mail, "from_name", "WASL marketers");
-    addHidden(mail, "subject", `WASL marketer application — ${String(fullName || "").slice(0, 80)}`);
-    addHidden(mail, "redirect", `${location.origin}${location.pathname}?sent=1`);
-    addHidden(mail, "name", String(fullName || "").slice(0, 120));
-    addHidden(mail, "email", email);
-    addHidden(mail, "message", message.slice(0, 8000));
-    const copies = ccList();
-    if (copies) addHidden(mail, "ccemail", copies);
-  } else {
-    mail.action = `https://formsubmit.co/${inbox()}`;
-    addHidden(mail, "name", String(fullName || "").slice(0, 120));
-    addHidden(mail, "email", email);
-    addHidden(mail, "_subject", `WASL marketer application — ${String(fullName || "").slice(0, 80)}`);
-    addHidden(mail, "_captcha", "false");
-    addHidden(mail, "_next", `${location.origin}${location.pathname}?sent=1`);
-    addHidden(mail, "message", message.slice(0, 8000));
-    if (ccList()) addHidden(mail, "_cc", ccList());
+  if (!key) {
+    const err = new Error("needKey");
+    err.code = "needKey";
+    throw err;
   }
-  document.body.appendChild(mail);
-  mail.submit();
+  const body = {
+    access_key: key,
+    from_name: "WASL marketers",
+    subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
+    name: String(fullName || "").slice(0, 120),
+    email,
+    message: message.slice(0, 8000),
+  };
+  const copies = ccList();
+  if (copies) body.ccemail = copies;
+  const res = await fetch("https://api.web3forms.com/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json.success === false) {
+    throw new Error("send");
+  }
 }
 
 window.addEventListener("pageshow", resetSendButton);
@@ -643,24 +634,17 @@ form.addEventListener("submit", async (event) => {
 
   let workDl = workLink;
   let cvLink = "";
-  try {
-    if (workFile) {
+  if (workFile && !workLink) {
+    try {
       const uploaded = await uploadFile(workFile);
       if (uploaded) workDl = uploaded;
+    } catch (_) {
+      /* send the rest of the form */
     }
-    if (cvFile) cvLink = await uploadFile(cvFile);
-  } catch (_) {
-    /* still send the rest of the form */
   }
 
-  const stay = window.setTimeout(() => {
-    if (!submitBtn.disabled) return;
-    resetSendButton();
-    showStatus("err", t.netErr);
-  }, 18000);
-
   try {
-    postToInbox({
+    await sendToInbox({
       fullName: form.fullName.value,
       email: form.email.value,
       message: applicationMessage({
@@ -671,9 +655,9 @@ form.addEventListener("submit", async (event) => {
         cvLink,
       }),
     });
-  } catch (_) {
-    window.clearTimeout(stay);
+    showSuccess();
+  } catch (error) {
     resetSendButton();
-    showStatus("err", t.err);
+    showStatus("err", error && error.code === "needKey" ? t.needKey : t.err);
   }
 });
