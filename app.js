@@ -105,7 +105,6 @@ const I18N = {
     ok: "Thank you. Your full application was sent. We will contact you.",
     err: "Could not send. Please try again.",
     netErr: "The connection dropped. Press Send again.",
-    mailApp: "The mail service is down. Your email app opened — press Send there.",
     needActivate:
       "This new website needs one email activation. Open Hotmail (and Junk), click Activate Form from FormSubmit, then send the application again. After that you will see the WASL thank-you page.",
     needEmail: "Put your email in config.js first (inbox), then try again.",
@@ -225,7 +224,6 @@ const I18N = {
     ok: "شكرًا لك. تم إرسال طلبك كاملًا. سنتواصل معك.",
     err: "تعذّر الإرسال. حاول مرة أخرى.",
     netErr: "انقطع الاتصال. اضغط إرسال مرة أخرى.",
-    mailApp: "خدمة البريد متوقفة. فُتح تطبيق البريد — اضغط إرسال من هناك.",
     needActivate:
       "هذا الموقع الجديد يحتاج تفعيلًا مرة واحدة. افتحي هوتميل (وصندوق البريد غير المرغوب فيه)، اضغطي Activate Form من FormSubmit، ثم أرسلي الطلب مرة ثانية. بعدها تظهر صفحة شكر وصل.",
     needEmail: "ضع بريدك في ملف config.js أولًا ثم أعد المحاولة.",
@@ -545,43 +543,28 @@ function applicationMessage({ code, workFile, cvFile, workDl, cvLink }) {
     .join("\n");
 }
 
-function openMailApp({ fullName, message }) {
-  const subject = encodeURIComponent(`WASL marketer application — ${fullName}`);
-  const body = encodeURIComponent(message.slice(0, 1600));
-  const cc = ccList();
-  const copies = cc ? `&cc=${encodeURIComponent(cc)}` : "";
-  window.location.href = `mailto:${inbox()}?subject=${subject}${copies}&body=${body}`;
+function addHidden(mail, name, value) {
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = name;
+  input.value = value == null ? "" : String(value);
+  mail.appendChild(input);
 }
 
-async function sendToInbox({ fullName, email, message }) {
-  const body = new FormData();
-  body.append("name", String(fullName || "").slice(0, 120));
-  body.append("email", email);
-  body.append("message", message.slice(0, 8000));
-  body.append("_subject", `WASL marketer — ${String(fullName || "").slice(0, 80)}`);
-  body.append("_captcha", "false");
-
-  const res = await postForm(`https://formsubmit.co/ajax/${inbox()}`, body, {
-    Accept: "application/json",
-  });
-  const text = await res.text();
-  let json = {};
-  try {
-    json = JSON.parse(text);
-  } catch (_) {
-    json = {};
-  }
-  const note = String(json.message || json.error || text || "");
-  if (/activate/i.test(note)) {
-    const err = new Error("activate");
-    err.code = "activate";
-    throw err;
-  }
-  if (!res.ok || /server error/i.test(note) || json.success === false || json.success === "false") {
-    const err = new Error("formsubmit");
-    err.code = "formsubmit";
-    throw err;
-  }
+function postToInbox({ fullName, email, message }) {
+  const mail = document.createElement("form");
+  mail.method = "POST";
+  mail.action = `https://formsubmit.co/${inbox()}`;
+  mail.acceptCharset = "UTF-8";
+  mail.style.display = "none";
+  addHidden(mail, "name", String(fullName || "").slice(0, 120));
+  addHidden(mail, "email", email);
+  addHidden(mail, "_subject", `WASL marketer application — ${String(fullName || "").slice(0, 80)}`);
+  addHidden(mail, "_captcha", "false");
+  addHidden(mail, "_next", `${location.origin}${location.pathname}?sent=1`);
+  addHidden(mail, "message", message.slice(0, 8000));
+  document.body.appendChild(mail);
+  mail.submit();
 }
 
 window.addEventListener("pageshow", resetSendButton);
@@ -649,30 +632,21 @@ form.addEventListener("submit", async (event) => {
     showStatus("err", t.netErr);
   }, 18000);
 
-  const payload = {
-    fullName: form.fullName.value,
-    email: form.email.value,
-    message: applicationMessage({
-      code: makeMarketerCode(),
-      workFile,
-      cvFile,
-      workDl,
-      cvLink,
-    }),
-  };
-
   try {
-    await sendToInbox(payload);
-    window.clearTimeout(stay);
-    showSuccess();
-  } catch (error) {
+    postToInbox({
+      fullName: form.fullName.value,
+      email: form.email.value,
+      message: applicationMessage({
+        code: makeMarketerCode(),
+        workFile,
+        cvFile,
+        workDl,
+        cvLink,
+      }),
+    });
+  } catch (_) {
     window.clearTimeout(stay);
     resetSendButton();
-    if (error && error.code === "activate") {
-      showStatus("err", t.needActivate);
-      return;
-    }
-    openMailApp(payload);
-    showStatus("err", t.mailApp);
+    showStatus("err", t.err);
   }
 });
