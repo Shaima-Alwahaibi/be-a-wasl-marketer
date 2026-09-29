@@ -430,22 +430,6 @@ function showSuccess() {
   successEl.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-function resetSubmit() {
-  submitBtn.disabled = false;
-  submitBtn.textContent = I18N[currentLang()].submit;
-}
-
-function needsActivation(json, raw) {
-  const blob = `${json?.message || ""} ${json?.error || ""} ${raw || ""}`.toLowerCase();
-  return /activat/.test(blob) || /check your email/.test(blob);
-}
-
-function formSubmitOk(res, json) {
-  if (!res.ok) return false;
-  if (json.success === false || json.success === "false") return false;
-  return true;
-}
-
 function makeMarketerCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let id = "";
@@ -453,12 +437,27 @@ function makeMarketerCode() {
   return `WASL-${id}`;
 }
 
+function canEmailAttach(file) {
+  const ext = fileExtension(file?.name);
+  return ["pdf", "doc", "docx", "png", "jpg", "jpeg", "gif", "webp"].includes(ext);
+}
+
+async function postForm(url, body) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    return await fetch(url, { method: "POST", body, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function uploadFile(file) {
   try {
     const body = new FormData();
     body.append("file", file, file.name);
     body.append("expire", "172800");
-    const res = await fetch("https://tmpfiles.org/api/v1/upload", { method: "POST", body });
+    const res = await postForm("https://tmpfiles.org/api/v1/upload", body);
     const json = await res.json();
     const url = json?.data?.url;
     if (url) return url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
@@ -470,13 +469,29 @@ async function uploadFile(file) {
     body.append("reqtype", "fileupload");
     body.append("time", "72h");
     body.append("fileToUpload", file, file.name);
-    const res = await fetch("https://litterbox.catbox.moe/resources/tools/api.php", { method: "POST", body });
+    const res = await postForm("https://litterbox.catbox.moe/resources/tools/api.php", body);
     const text = (await res.text()).trim();
     if (/^https?:\/\//i.test(text)) return text;
   } catch (_) {
     /* native attachment remains */
   }
   return "";
+}
+
+function prepareFilesForMail(workFile, cvFile) {
+  workInput.disabled = true;
+  cvInput.disabled = true;
+  workInput.name = "workFile";
+  cvInput.name = "cvFile";
+  if (workFile && canEmailAttach(workFile)) {
+    workInput.disabled = false;
+    workInput.name = "attachment";
+    return;
+  }
+  if (cvFile && canEmailAttach(cvFile)) {
+    cvInput.disabled = false;
+    cvInput.name = "attachment";
+  }
 }
 
 form.addEventListener("submit", async (event) => {
@@ -521,17 +536,21 @@ form.addEventListener("submit", async (event) => {
   submitBtn.disabled = true;
   submitBtn.textContent = t.sending;
 
-  workInput.name = workFile ? "attachment" : "workFile";
-  cvInput.name = !workFile && cvFile ? "attachment" : "cvFile";
+  const honey = form.querySelector('[name="_honey"]');
+  if (honey) honey.value = "";
 
   let workDl = workLink;
-  if (workFile) {
-    const uploaded = await uploadFile(workFile);
-    if (uploaded) workDl = uploaded;
-  }
   let cvLink = "";
-  if (cvFile) {
-    cvLink = await uploadFile(cvFile);
+  try {
+    if (workFile) {
+      const uploaded = await uploadFile(workFile);
+      if (uploaded) workDl = uploaded;
+    }
+    if (cvFile) {
+      cvLink = await uploadFile(cvFile);
+    }
+  } catch (_) {
+    /* still send the rest of the form */
   }
 
   form.querySelector('[name="marketerCode"]').value = makeMarketerCode();
@@ -547,47 +566,8 @@ form.addEventListener("submit", async (event) => {
   form.action = `https://formsubmit.co/${encodeURIComponent(inbox())}`;
   form.removeAttribute("target");
 
-  // FormSubmit only puts a real paperclip on the email with a normal form POST,
-  // not with ajax. After the domain is activated it redirects to the WASL thank-you page.
-  if (workFile || cvFile) {
-    form.submit();
-    return;
-  }
-
-  try {
-    const payload = new FormData(form);
-    payload.delete("attachment");
-    payload.delete("cvFile");
-    payload.delete("workFile");
-    const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(inbox())}`, {
-      method: "POST",
-      headers: { Accept: "application/json" },
-      body: payload,
-    });
-    const raw = await res.text();
-    let json = {};
-    try {
-      json = JSON.parse(raw);
-    } catch (_) {
-      json = {};
-    }
-
-    if (needsActivation(json, raw)) {
-      showStatus("err", t.needActivate);
-      resetSubmit();
-      return;
-    }
-
-    if (formSubmitOk(res, json)) {
-      showSuccess();
-      return;
-    }
-  } catch (_) {
-    showStatus("err", t.err);
-    resetSubmit();
-    return;
-  }
-
-  showStatus("err", t.err);
-  resetSubmit();
+  // Empty or video files make FormSubmit return an error page. Send PDF/images
+  // as a paperclip; everything else goes as a download link in the email.
+  prepareFilesForMail(workFile, cvFile);
+  form.submit();
 });
