@@ -459,11 +459,63 @@ function checkedLines() {
   });
 }
 
-function fieldLine(id) {
-  const el = document.getElementById(id);
+function fieldLabel(id) {
   const label = document.querySelector(`label[for="${id}"]`);
-  const title = label ? label.innerText.replace(/\s+/g, " ").trim() : id;
-  return `${title}: ${el ? String(el.value || "").trim() : ""}`;
+  const named = label?.querySelector("[data-i18n]");
+  return ((named || label)?.innerText || id).replace(/\s+/g, " ").trim();
+}
+
+function fieldValue(id) {
+  const el = document.getElementById(id);
+  return el ? String(el.value || "").trim() : "";
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function cellHtml(value) {
+  const shown = String(value || "").trim();
+  if (!shown) return "—";
+  if (/^https?:\/\//i.test(shown)) {
+    const safe = escapeHtml(shown);
+    return `<a href="${safe}" style="color:#0e7c7e;word-break:break-all;">${safe}</a>`;
+  }
+  return escapeHtml(shown).replace(/\n/g, "<br>");
+}
+
+function tableRow(label, value, zebra) {
+  const background = zebra ? "#f7f9fa" : "#ffffff";
+  return `<tr>
+    <td style="width:34%;padding:12px 14px;background:${background};border:1px solid #e4ddd0;font-weight:700;vertical-align:top;">${escapeHtml(label)}</td>
+    <td style="padding:12px 14px;background:${background};border:1px solid #e4ddd0;vertical-align:top;">${cellHtml(value)}</td>
+  </tr>`;
+}
+
+function applicationTable({ workFile, cvFile, workLink, cvLink }) {
+  const t = I18N[currentLang()];
+  const dir = t.dir;
+  const align = dir === "rtl" ? "right" : "left";
+  const rows = [
+    ...ANSWER_IDS.map((id) => [fieldLabel(id), fieldValue(id)]),
+    [t.workTitle, workFile ? workFile.name : ""],
+    [t.workLink, workLink || ""],
+    [t.cv, cvFile ? cvFile.name : ""],
+    [currentLang() === "ar" ? "رابط السيرة الذاتية" : "CV link", cvLink || ""],
+    [t.beforeTitle, checkedLines().map((line) => line.replace(/^- /, "")).join("\n")],
+  ];
+  return `<div dir="${dir}" style="font-family:Segoe UI,Tahoma,Arial,sans-serif;color:#12263a;text-align:${align};">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;text-align:${align};">
+      <tr>
+        <td colspan="2" style="padding:16px 14px;background:#12263a;color:#f7f9fa;font-size:18px;font-weight:700;">WASL</td>
+      </tr>
+      ${rows.map(([label, value], index) => tableRow(label, value, index % 2 === 0)).join("")}
+    </table>
+  </div>`;
 }
 
 async function uploadFile(file) {
@@ -490,14 +542,6 @@ async function uploadFile(file) {
 
 async function sendApplication({ fullName, email, workFile, cvFile, workLink, cvLink }) {
   const cfg = window.WASL_CONFIG;
-  const lines = [
-    ...ANSWER_IDS.map(fieldLine),
-    `Work file: ${workFile ? workFile.name : ""}`,
-    `Work link: ${workLink || ""}`,
-    `CV file: ${cvFile ? cvFile.name : ""}`,
-    `CV link: ${cvLink || ""}`,
-    `Confirmed:\n${checkedLines().join("\n")}`,
-  ];
   const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -510,7 +554,7 @@ async function sendApplication({ fullName, email, workFile, cvFile, workLink, cv
         reply_to: email,
         from_name: "WASL marketers",
         subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
-        message: lines.join("\n"),
+        message: applicationTable({ workFile, cvFile, workLink, cvLink }),
       },
     }),
   });
