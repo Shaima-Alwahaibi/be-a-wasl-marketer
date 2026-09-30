@@ -518,13 +518,26 @@ function applicationTable({ workFile, cvFile, workLink, cvLink }) {
   </div>`;
 }
 
-function fileDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
+async function uploadFile(file) {
+  const body = new FormData();
+  body.append("reqtype", "fileupload");
+  body.append("time", "72h");
+  body.append("fileToUpload", file, file.name);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const res = await fetch("https://litterbox.catbox.moe/resources/tools/api.php", {
+      method: "POST",
+      body,
+      signal: ctrl.signal,
+    });
+    const text = (await res.text()).trim();
+    return /^https?:\/\//i.test(text) ? text : "";
+  } catch (_) {
+    return "";
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function postApplication(templateParams) {
@@ -542,23 +555,14 @@ async function postApplication(templateParams) {
   if (!res.ok) throw new Error("send");
 }
 
-function applicationParams({ fullName, email, workFile, cvFile, workLink, cvLink, workData, cvData }) {
-  const params = {
+function applicationParams({ fullName, email, workFile, cvFile, workLink, cvLink }) {
+  return {
     to_email: teamEmails().join(", "),
     reply_to: email,
     from_name: "WASL marketers",
     subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
     message: applicationTable({ workFile, cvFile, workLink, cvLink }),
   };
-  if (workData) {
-    params.work_file = workData;
-    params.work_filename = workFile.name;
-  }
-  if (cvData) {
-    params.cv_file = cvData;
-    params.cv_filename = cvFile.name;
-  }
-  return params;
 }
 
 window.addEventListener("pageshow", resetSendButton);
@@ -608,21 +612,21 @@ form.addEventListener("submit", async (event) => {
   const honey = form.querySelector('[name="_honey"]');
   if (honey) honey.value = "";
 
-  const details = {
-    fullName: form.fullName.value,
-    email: form.email.value,
-    workFile,
-    cvFile,
-    workLink,
-    cvLink: "",
-  };
-
   try {
-    const [workData, cvData] = await Promise.all([
-      workFile ? fileDataUrl(workFile) : "",
-      cvFile ? fileDataUrl(cvFile) : "",
+    const [workDl, cvLink] = await Promise.all([
+      workFile && !workLink ? uploadFile(workFile) : workLink,
+      cvFile ? uploadFile(cvFile) : "",
     ]);
-    await postApplication(applicationParams({ ...details, workData, cvData }));
+    await postApplication(
+      applicationParams({
+        fullName: form.fullName.value,
+        email: form.email.value,
+        workFile,
+        cvFile,
+        workLink: workDl || workLink,
+        cvLink,
+      })
+    );
     showSuccess();
   } catch (_) {
     resetSendButton();
