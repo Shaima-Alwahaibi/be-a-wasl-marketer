@@ -470,14 +470,17 @@ function fieldValue(id) {
   return el ? String(el.value || "").trim() : "";
 }
 
-function applicationMessage({ workFile, cvFile, workLink, cvLink }) {
+function applicationMessage({ workFile, cvFile, workFileUrl, typedWorkLink, cvLink }) {
   const t = I18N[currentLang()];
+  const openWork = currentLang() === "ar" ? "افتح ملف الأعمال" : "Open the work file";
+  const openCv = currentLang() === "ar" ? "افتح السيرة الذاتية" : "Open the CV";
   const rows = [
     ...ANSWER_IDS.map((id) => [fieldLabel(id), fieldValue(id)]),
     [t.workTitle, workFile ? workFile.name : ""],
-    [currentLang() === "ar" ? "رابط ملف الأعمال" : "Work file link", workLink || ""],
+    [openWork, workFileUrl || ""],
+    [t.workLink, typedWorkLink || ""],
     [t.cv, cvFile ? cvFile.name : ""],
-    [currentLang() === "ar" ? "رابط السيرة الذاتية" : "CV link", cvLink || ""],
+    [openCv, cvLink || ""],
     [t.beforeTitle, checkedLines().map((line) => line.replace(/^- /, "")).join("\n")],
   ];
   const body = rows
@@ -486,26 +489,42 @@ function applicationMessage({ workFile, cvFile, workLink, cvLink }) {
   return `WASL\n${t.title}\n\n${body}`;
 }
 
-async function uploadFile(file) {
-  const body = new FormData();
-  body.append("reqtype", "fileupload");
-  body.append("time", "72h");
-  body.append("fileToUpload", file, file.name);
+async function uploadOnce(url, file, fill) {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 12000);
+  const timer = setTimeout(() => ctrl.abort(), 20000);
   try {
-    const res = await fetch("https://litterbox.catbox.moe/resources/tools/api.php", {
-      method: "POST",
-      body,
-      signal: ctrl.signal,
-    });
-    const text = (await res.text()).trim();
-    return /^https?:\/\//i.test(text) ? text : "";
-  } catch (_) {
-    return "";
+    const body = new FormData();
+    fill(body, file);
+    const res = await fetch(url, { method: "POST", body, signal: ctrl.signal });
+    return res;
   } finally {
     clearTimeout(timer);
   }
+}
+
+async function uploadFile(file) {
+  try {
+    const res = await uploadOnce("https://tmpfiles.org/api/v1/upload", file, (body, item) => {
+      body.append("file", item, item.name);
+    });
+    const json = await res.json();
+    const url = json?.data?.url || "";
+    if (url) return url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+  } catch (_) {
+    /* try the next host */
+  }
+  try {
+    const res = await uploadOnce("https://litterbox.catbox.moe/resources/tools/api.php", file, (body, item) => {
+      body.append("reqtype", "fileupload");
+      body.append("time", "72h");
+      body.append("fileToUpload", item, item.name);
+    });
+    const text = (await res.text()).trim();
+    if (/^https?:\/\//i.test(text)) return text;
+  } catch (_) {
+    /* the email still includes the file name */
+  }
+  return "";
 }
 
 async function postApplication(templateParams) {
@@ -523,13 +542,13 @@ async function postApplication(templateParams) {
   if (!res.ok) throw new Error("send");
 }
 
-function applicationParams({ fullName, email, workFile, cvFile, workLink, cvLink }) {
+function applicationParams({ fullName, email, workFile, cvFile, workFileUrl, typedWorkLink, cvLink }) {
   return {
     to_email: teamEmails().join(", "),
     reply_to: email,
     from_name: "WASL marketers",
     subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
-    message: applicationMessage({ workFile, cvFile, workLink, cvLink }),
+    message: applicationMessage({ workFile, cvFile, workFileUrl, typedWorkLink, cvLink }),
   };
 }
 
@@ -591,7 +610,8 @@ form.addEventListener("submit", async (event) => {
         email: form.email.value,
         workFile,
         cvFile,
-        workLink: [workDl, workLink].filter(Boolean).join("\n"),
+        workFileUrl: workDl,
+        typedWorkLink: workLink,
         cvLink,
       })
     );
