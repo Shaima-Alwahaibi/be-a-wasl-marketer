@@ -518,6 +518,15 @@ function applicationTable({ workFile, cvFile, workLink, cvLink }) {
   </div>`;
 }
 
+function fileDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 async function uploadFile(file) {
   const body = new FormData();
   body.append("reqtype", "fileupload");
@@ -540,7 +549,7 @@ async function uploadFile(file) {
   }
 }
 
-async function sendApplication({ fullName, email, workFile, cvFile, workLink, cvLink }) {
+async function postApplication(templateParams) {
   const cfg = window.WASL_CONFIG;
   const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
     method: "POST",
@@ -549,16 +558,29 @@ async function sendApplication({ fullName, email, workFile, cvFile, workLink, cv
       service_id: String(cfg.emailjsServiceId).trim(),
       template_id: String(cfg.emailjsTemplateId).trim(),
       user_id: String(cfg.emailjsPublicKey).trim(),
-      template_params: {
-        to_email: teamEmails().join(", "),
-        reply_to: email,
-        from_name: "WASL marketers",
-        subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
-        message: applicationTable({ workFile, cvFile, workLink, cvLink }),
-      },
+      template_params: templateParams,
     }),
   });
   if (!res.ok) throw new Error("send");
+}
+
+function applicationParams({ fullName, email, workFile, cvFile, workLink, cvLink, workData, cvData }) {
+  const params = {
+    to_email: teamEmails().join(", "),
+    reply_to: email,
+    from_name: "WASL marketers",
+    subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
+    message: applicationTable({ workFile, cvFile, workLink, cvLink }),
+  };
+  if (workData) {
+    params.work_file = workData;
+    params.work_filename = workFile.name;
+  }
+  if (cvData) {
+    params.cv_file = cvData;
+    params.cv_filename = cvFile.name;
+  }
+  return params;
 }
 
 window.addEventListener("pageshow", resetSendButton);
@@ -608,20 +630,31 @@ form.addEventListener("submit", async (event) => {
   const honey = form.querySelector('[name="_honey"]');
   if (honey) honey.value = "";
 
-  const [workDl, cvLink] = await Promise.all([
-    workFile && !workLink ? uploadFile(workFile) : workLink,
-    cvFile ? uploadFile(cvFile) : "",
-  ]);
+  const details = {
+    fullName: form.fullName.value,
+    email: form.email.value,
+    workFile,
+    cvFile,
+    workLink,
+    cvLink: "",
+  };
 
   try {
-    await sendApplication({
-      fullName: form.fullName.value,
-      email: form.email.value,
-      workFile,
-      cvFile,
-      workLink: workDl,
-      cvLink,
-    });
+    const [workData, cvData] = await Promise.all([
+      workFile ? fileDataUrl(workFile) : "",
+      cvFile ? fileDataUrl(cvFile) : "",
+    ]);
+    try {
+      await postApplication(applicationParams({ ...details, workData, cvData }));
+    } catch (_) {
+      const [workDl, cvDl] = await Promise.all([
+        workFile && !workLink ? uploadFile(workFile) : workLink,
+        cvFile ? uploadFile(cvFile) : "",
+      ]);
+      await postApplication(
+        applicationParams({ ...details, workLink: workDl || workLink, cvLink: cvDl, workData: "", cvData: "" })
+      );
+    }
     showSuccess();
   } catch (_) {
     resetSendButton();
