@@ -470,52 +470,20 @@ function fieldValue(id) {
   return el ? String(el.value || "").trim() : "";
 }
 
-function escapeHtml(value) {
-  return String(value || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function cellHtml(value) {
-  const shown = String(value || "").trim();
-  if (!shown) return "—";
-  if (/^https?:\/\//i.test(shown)) {
-    const safe = escapeHtml(shown);
-    return `<a href="${safe}" style="color:#0e7c7e;word-break:break-all;">${safe}</a>`;
-  }
-  return escapeHtml(shown).replace(/\n/g, "<br>");
-}
-
-function tableRow(label, value, zebra) {
-  const background = zebra ? "#f7f9fa" : "#ffffff";
-  return `<tr>
-    <td style="width:34%;padding:12px 14px;background:${background};border:1px solid #e4ddd0;font-weight:700;vertical-align:top;">${escapeHtml(label)}</td>
-    <td style="padding:12px 14px;background:${background};border:1px solid #e4ddd0;vertical-align:top;">${cellHtml(value)}</td>
-  </tr>`;
-}
-
-function applicationTable({ workFile, cvFile, workLink, cvLink }) {
+function applicationMessage({ workFile, cvFile, workLink, cvLink }) {
   const t = I18N[currentLang()];
-  const dir = t.dir;
-  const align = dir === "rtl" ? "right" : "left";
   const rows = [
     ...ANSWER_IDS.map((id) => [fieldLabel(id), fieldValue(id)]),
     [t.workTitle, workFile ? workFile.name : ""],
-    [t.workLink, workLink || ""],
+    [currentLang() === "ar" ? "رابط ملف الأعمال" : "Work file link", workLink || ""],
     [t.cv, cvFile ? cvFile.name : ""],
     [currentLang() === "ar" ? "رابط السيرة الذاتية" : "CV link", cvLink || ""],
     [t.beforeTitle, checkedLines().map((line) => line.replace(/^- /, "")).join("\n")],
   ];
-  return `<div dir="${dir}" style="font-family:Segoe UI,Tahoma,Arial,sans-serif;color:#12263a;text-align:${align};">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;text-align:${align};">
-      <tr>
-        <td colspan="2" style="padding:16px 14px;background:#12263a;color:#f7f9fa;font-size:18px;font-weight:700;">WASL</td>
-      </tr>
-      ${rows.map(([label, value], index) => tableRow(label, value, index % 2 === 0)).join("")}
-    </table>
-  </div>`;
+  const body = rows
+    .map(([label, value]) => `${label}\n${String(value || "").trim() || "—"}`)
+    .join("\n\n");
+  return `WASL\n${t.title}\n\n${body}`;
 }
 
 async function uploadFile(file) {
@@ -561,7 +529,7 @@ function applicationParams({ fullName, email, workFile, cvFile, workLink, cvLink
     reply_to: email,
     from_name: "WASL marketers",
     subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
-    message: applicationTable({ workFile, cvFile, workLink, cvLink }),
+    message: applicationMessage({ workFile, cvFile, workLink, cvLink }),
   };
 }
 
@@ -614,7 +582,7 @@ form.addEventListener("submit", async (event) => {
 
   try {
     const [workDl, cvLink] = await Promise.all([
-      workFile && !workLink ? uploadFile(workFile) : workLink,
+      workFile ? uploadFile(workFile) : "",
       cvFile ? uploadFile(cvFile) : "",
     ]);
     await postApplication(
@@ -623,7 +591,7 @@ form.addEventListener("submit", async (event) => {
         email: form.email.value,
         workFile,
         cvFile,
-        workLink: workDl || workLink,
+        workLink: [workDl, workLink].filter(Boolean).join("\n"),
         cvLink,
       })
     );
