@@ -527,28 +527,6 @@ function fileDataUrl(file) {
   });
 }
 
-async function uploadFile(file) {
-  const body = new FormData();
-  body.append("reqtype", "fileupload");
-  body.append("time", "72h");
-  body.append("fileToUpload", file, file.name);
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 12000);
-  try {
-    const res = await fetch("https://litterbox.catbox.moe/resources/tools/api.php", {
-      method: "POST",
-      body,
-      signal: ctrl.signal,
-    });
-    const text = (await res.text()).trim();
-    return /^https?:\/\//i.test(text) ? text : "";
-  } catch (_) {
-    return "";
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 async function postApplication(templateParams) {
   const cfg = window.WASL_CONFIG;
   const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
@@ -644,17 +622,7 @@ form.addEventListener("submit", async (event) => {
       workFile ? fileDataUrl(workFile) : "",
       cvFile ? fileDataUrl(cvFile) : "",
     ]);
-    try {
-      await postApplication(applicationParams({ ...details, workData, cvData }));
-    } catch (_) {
-      const [workDl, cvDl] = await Promise.all([
-        workFile && !workLink ? uploadFile(workFile) : workLink,
-        cvFile ? uploadFile(cvFile) : "",
-      ]);
-      await postApplication(
-        applicationParams({ ...details, workLink: workDl || workLink, cvLink: cvDl, workData: "", cvData: "" })
-      );
-    }
+    await postApplication(applicationParams({ ...details, workData, cvData }));
     showSuccess();
   } catch (_) {
     resetSendButton();
