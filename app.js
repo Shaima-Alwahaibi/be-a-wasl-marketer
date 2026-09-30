@@ -102,12 +102,8 @@ const I18N = {
     readyLine: "Ready to be part of building WASL from the start?",
     submit: "Send join request",
     sending: "Sending...",
-    ok: "Thank you. Your full application was sent. We will contact you.",
-    err: "The mail server is down, so this request was not sent.",
-    netErr: "The connection dropped. Press Send again.",
-    needActivate:
-      "This new website needs one email activation. Open Hotmail (and Junk), click Activate Form from FormSubmit, then send the application again. After that you will see the WASL thank-you page.",
-    needEmail: "Put your email in config.js first (inbox), then try again.",
+    err: "This request was not sent. Try again.",
+    needEmail: "The mail setup in config.js is incomplete.",
     required: "Please fill the required fields.",
     needWork: "Attach a work file or add a work link.",
     fileBig: "The file must be 10 MB or smaller.",
@@ -221,12 +217,8 @@ const I18N = {
     readyLine: "هل أنت مستعد أن تكون جزءًا من بناء وصل من البداية؟",
     submit: "إرسال طلب الانضمام",
     sending: "جارٍ الإرسال...",
-    ok: "شكرًا لك. تم إرسال طلبك كاملًا. سنتواصل معك.",
-    err: "خادم البريد متوقف، لذلك لم يُرسل الطلب.",
-    netErr: "انقطع الاتصال. اضغط إرسال مرة أخرى.",
-    needActivate:
-      "هذا الموقع الجديد يحتاج تفعيلًا مرة واحدة. افتحي هوتميل (وصندوق البريد غير المرغوب فيه)، اضغطي Activate Form من FormSubmit، ثم أرسلي الطلب مرة ثانية. بعدها تظهر صفحة شكر وصل.",
-    needEmail: "ضع بريدك في ملف config.js أولًا ثم أعد المحاولة.",
+    err: "لم يُرسل الطلب. حاول مرة أخرى.",
+    needEmail: "إعداد البريد في ملف config.js غير مكتمل.",
     required: "أكمل الحقول المطلوبة.",
     needWork: "أرفق ملف أعمال أو أضف رابطًا.",
     fileBig: "يجب ألا يتجاوز الملف 10 ميغابايت.",
@@ -272,9 +264,7 @@ const successEl = document.getElementById("success");
 const submitBtn = document.getElementById("submit-btn");
 
 function currentLang() {
-  const saved = localStorage.getItem("wasl-marketer-lang");
-  if (saved === "ar" || saved === "en") return saved;
-  return (navigator.language || "").toLowerCase().startsWith("ar") ? "ar" : "ar";
+  return localStorage.getItem("wasl-marketer-lang") === "en" ? "en" : "ar";
 }
 
 function applyLang(lang) {
@@ -309,13 +299,45 @@ function showStatus(type, message) {
   statusEl.textContent = message;
 }
 
-function inbox() {
-  return String(window.WASL_CONFIG?.inbox || "").trim();
+const ANSWER_IDS = [
+  "fullName",
+  "age",
+  "university",
+  "major",
+  "phone",
+  "email",
+  "socialAccounts",
+  "linkedin",
+  "weeklyHours",
+  "marketingTried",
+  "strongestSkill",
+  "managedWork",
+  "cameraComfort",
+  "contentSkill",
+  "helpReach",
+  "whyJoin",
+  "expectations",
+];
+
+function teamEmails() {
+  const listed = window.WASL_CONFIG?.to;
+  const seen = new Set();
+  return (Array.isArray(listed) ? listed : []).reduce((list, email) => {
+    const clean = String(email || "").trim();
+    const key = clean.toLowerCase();
+    if (!clean || seen.has(key)) return list;
+    seen.add(key);
+    list.push(clean);
+    return list;
+  }, []);
 }
 
-function inboxReady() {
-  const email = inbox();
-  return email && !/your_email@example\.com/i.test(email);
+function mailReady() {
+  const cfg = window.WASL_CONFIG || {};
+  return (
+    teamEmails().length > 0 &&
+    ["emailjsPublicKey", "emailjsServiceId", "emailjsTemplateId"].every((name) => String(cfg[name] || "").trim())
+  );
 }
 
 document.querySelectorAll(".lang button").forEach((btn) => {
@@ -430,46 +452,6 @@ function resetSendButton() {
   submitBtn.textContent = t.submit;
 }
 
-async function postForm(url, body) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 4000);
-  try {
-    return await fetch(url, { method: "POST", body, signal: ctrl.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-async function uploadOnce(file) {
-  try {
-    const body = new FormData();
-    body.append("file", file, file.name);
-    body.append("expire", "172800");
-    const res = await postForm("https://tmpfiles.org/api/v1/upload", body);
-    const json = await res.json();
-    const url = json?.data?.url;
-    if (url) return url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
-  } catch (_) {
-    /* try next host */
-  }
-  try {
-    const body = new FormData();
-    body.append("reqtype", "fileupload");
-    body.append("time", "72h");
-    body.append("fileToUpload", file, file.name);
-    const res = await postForm("https://litterbox.catbox.moe/resources/tools/api.php", body);
-    const text = (await res.text()).trim();
-    if (/^https?:\/\//i.test(text)) return text;
-  } catch (_) {
-    /* link may stay empty */
-  }
-  return "";
-}
-
-async function uploadFile(file) {
-  return uploadOnce(file);
-}
-
 function checkedLines() {
   return [...form.querySelectorAll(".checks input:checked")].map((input) => {
     const text = input.parentElement?.innerText.replace(/\s+/g, " ").trim();
@@ -477,67 +459,62 @@ function checkedLines() {
   });
 }
 
-async function sendForm(body) {
-  const res = await fetch("https://api.web3forms.com/submit", { method: "POST", body });
-  const json = await res.json().catch(() => ({}));
-  const note = String(json.message || json.body?.message || "");
-  return { ok: res.ok && json.success === true, note };
-}
-
-function appendAnswer(body, id) {
+function fieldLine(id) {
   const el = document.getElementById(id);
   const label = document.querySelector(`label[for="${id}"]`);
   const title = label ? label.innerText.replace(/\s+/g, " ").trim() : id;
-  body.append(title, el ? String(el.value || "").trim() : "");
+  return `${title}: ${el ? String(el.value || "").trim() : ""}`;
 }
 
-async function sendToInbox({ fullName, email, workFile, cvFile, workDl, cvLink }) {
-  const key = String(window.WASL_CONFIG?.web3forms || "").trim();
-  if (!key) throw new Error("send");
-
-  const build = (withFiles) => {
-    const body = new FormData();
-    body.append("access_key", key);
-    body.append("from_name", "WASL marketers");
-    body.append("subject", `WASL marketer application — ${String(fullName || "").slice(0, 80)}`);
-    body.append("email", email);
-    body.append("replyto", email);
-    body.append("ccemail", inbox());
-    appendAnswer(body, "fullName");
-    appendAnswer(body, "age");
-    appendAnswer(body, "university");
-    appendAnswer(body, "major");
-    appendAnswer(body, "phone");
-    appendAnswer(body, "email");
-    appendAnswer(body, "socialAccounts");
-    appendAnswer(body, "linkedin");
-    appendAnswer(body, "weeklyHours");
-    appendAnswer(body, "marketingTried");
-    appendAnswer(body, "strongestSkill");
-    appendAnswer(body, "managedWork");
-    body.append("Work file", workFile ? workFile.name : "");
-    body.append("Work link", workDl || "");
-    body.append("CV file", cvFile ? cvFile.name : "");
-    body.append("CV link", cvLink || "");
-    appendAnswer(body, "cameraComfort");
-    appendAnswer(body, "contentSkill");
-    appendAnswer(body, "helpReach");
-    appendAnswer(body, "whyJoin");
-    appendAnswer(body, "expectations");
-    body.append("Confirmed", checkedLines().join("\n"));
-    body.append("Deliver to", inbox());
-    if (withFiles && workFile) body.append("attachment", workFile, workFile.name);
-    if (withFiles && cvFile) body.append("CV", cvFile, cvFile.name);
-    return body;
-  };
-
-  const canAttach =
-    (!workFile || workFile.size <= 5 * 1024 * 1024) && (!cvFile || cvFile.size <= 5 * 1024 * 1024);
-  let result = await sendForm(build(canAttach && (workFile || cvFile)));
-  if (!result.ok && /pro|attachment|upgrade|file/i.test(result.note)) {
-    result = await sendForm(build(false));
+async function uploadFile(file) {
+  const body = new FormData();
+  body.append("reqtype", "fileupload");
+  body.append("time", "72h");
+  body.append("fileToUpload", file, file.name);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const res = await fetch("https://litterbox.catbox.moe/resources/tools/api.php", {
+      method: "POST",
+      body,
+      signal: ctrl.signal,
+    });
+    const text = (await res.text()).trim();
+    return /^https?:\/\//i.test(text) ? text : "";
+  } catch (_) {
+    return "";
+  } finally {
+    clearTimeout(timer);
   }
-  if (!result.ok) throw new Error("send");
+}
+
+async function sendApplication({ fullName, email, workFile, cvFile, workLink, cvLink }) {
+  const cfg = window.WASL_CONFIG;
+  const lines = [
+    ...ANSWER_IDS.map(fieldLine),
+    `Work file: ${workFile ? workFile.name : ""}`,
+    `Work link: ${workLink || ""}`,
+    `CV file: ${cvFile ? cvFile.name : ""}`,
+    `CV link: ${cvLink || ""}`,
+    `Confirmed:\n${checkedLines().join("\n")}`,
+  ];
+  const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      service_id: String(cfg.emailjsServiceId).trim(),
+      template_id: String(cfg.emailjsTemplateId).trim(),
+      user_id: String(cfg.emailjsPublicKey).trim(),
+      template_params: {
+        to_email: teamEmails().join(", "),
+        reply_to: email,
+        from_name: "WASL marketers",
+        subject: `WASL marketer application — ${String(fullName || "").slice(0, 80)}`,
+        message: lines.join("\n"),
+      },
+    }),
+  });
+  if (!res.ok) throw new Error("send");
 }
 
 window.addEventListener("pageshow", resetSendButton);
@@ -546,7 +523,7 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const t = I18N[currentLang()];
 
-  if (!inboxReady()) {
+  if (!mailReady()) {
     showStatus("err", t.needEmail);
     return;
   }
@@ -587,24 +564,18 @@ form.addEventListener("submit", async (event) => {
   const honey = form.querySelector('[name="_honey"]');
   if (honey) honey.value = "";
 
-  let workDl = workLink;
-  let cvLink = "";
-  if (workFile && !workLink) {
-    try {
-      const uploaded = await uploadFile(workFile);
-      if (uploaded) workDl = uploaded;
-    } catch (_) {
-      /* send the rest of the form */
-    }
-  }
+  const [workDl, cvLink] = await Promise.all([
+    workFile && !workLink ? uploadFile(workFile) : workLink,
+    cvFile ? uploadFile(cvFile) : "",
+  ]);
 
   try {
-    await sendToInbox({
+    await sendApplication({
       fullName: form.fullName.value,
       email: form.email.value,
       workFile,
       cvFile,
-      workDl,
+      workLink: workDl,
       cvLink,
     });
     showSuccess();

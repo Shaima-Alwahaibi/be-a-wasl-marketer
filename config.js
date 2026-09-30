@@ -1,5 +1,11 @@
 window.WASL_CONFIG = {
-  inbox: "shaimawhaibi@hotmail.com",
-  cc: [],
-  web3forms: "9766551c-8f73-4cd2-8aa2-99a880e141ee",
+  from: "shaimawhaibi@gmail.com",
+  to: [
+    "shaimawhaibi@hotmail.com",
+    "fatma.developer4515@gmail.com",
+    "anwaaralshekaili@gmail.com",
+  ],
+  emailjsPublicKey: "CgQLzxElflRvbiOnr",
+  emailjsServiceId: "service_iv5p968",
+  emailjsTemplateId: "template_bgwqeat",
 };
